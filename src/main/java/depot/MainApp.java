@@ -25,6 +25,7 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
+import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -32,7 +33,7 @@ import java.util.Objects;
 public class MainApp extends Application {
     public static final String APP_NAME = "Depot";
     public static final String VERSION = "2021.9.0";
-    public static String LOGO_PATH = Objects.requireNonNull(MainApp.class.getResource("view/html/img/logo.png")).toExternalForm();
+    public static URL LOGO_URL = Objects.requireNonNull(MainApp.class.getResource("view/html/img/logo.png"));
 
     private Stage primaryStage;
     private Stage progressStage;
@@ -67,7 +68,7 @@ public class MainApp extends Application {
             exitItem.addActionListener(e -> exit());
             popup.add(exitItem);
 
-            ImageIcon imageIcon = new ImageIcon(LOGO_PATH);
+            ImageIcon imageIcon = new ImageIcon(LOGO_URL);
             TrayIcon trayIcon = new TrayIcon(imageIcon.getImage());
             trayIcon.setImageAutoSize(true);
             trayIcon.setToolTip(APP_NAME);

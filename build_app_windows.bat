@@ -9,11 +9,12 @@ rem
 rem PROJECT_VERSION: version used in pom.xml, e.g. 1.0-SNAPSHOT
 rem APP_VERSION: the application version, e.g. 1.0.0, shown in "about" dialog
 
+set JAVA_HOME=C:\Users\Nathan\.jdks\openjdk-17.0.1
 set JAVA_VERSION=17
-set MAIN_JAR=main-ui-%PROJECT_VERSION%.jar
+set MAIN_JAR=depot-%PROJECT_VERSION%.jar
 
 rem Set desired installer type: "app-image" "msi" "exe".
-set INSTALLER_TYPE=msi
+set INSTALLER_TYPE=exe
 
 rem ------ SETUP DIRECTORIES AND FILES ----------------------------------------
 rem Remove previously generated java runtime and installers. Copy all required
@@ -37,9 +38,9 @@ echo detecting required modules
   --multi-release %JAVA_VERSION% ^
   --ignore-missing-deps ^
   --class-path "target\installer\input\libs\*" ^
-  --print-module-deps target\classes\com\dlsc\jpackagefx\App.class > temp.txt
+  --print-module-deps target\classes\depot\MainApp.class > deps.tmp
 
-set /p detected_modules=<temp.txt
+set /p detected_modules=<deps.tmp
 
 echo detected modules: %detected_modules%
 
@@ -73,7 +74,7 @@ call "%JAVA_HOME%\bin\jlink" ^
   --compress=2 ^
   --strip-debug ^
   --add-modules %detected_modules%%manual_modules% ^
-  --include-locales=en,de ^
+  --include-locales=en,zh ^
   --output target/java-runtime
 
 
@@ -84,15 +85,15 @@ call "%JAVA_HOME%\bin\jpackage" ^
   --type %INSTALLER_TYPE% ^
   --dest target/installer ^
   --input target/installer/input/libs ^
-  --name JPackageScriptFX ^
-  --main-class com.dlsc.jpackagefx.AppLauncher ^
+  --name depot ^
+  --main-class depot.AppLauncher ^
   --main-jar %MAIN_JAR% ^
   --java-options -Xmx2048m ^
   --runtime-image target/java-runtime ^
-  --icon src/main/logo/windows/duke.ico ^
+  --icon src/main/resources/depot/view/html/img/logo.ico ^
   --app-version %APP_VERSION% ^
-  --vendor "ACME Inc." ^
-  --copyright "Copyright © 2019-21 ACME Inc." ^
+  --vendor "makenosense" ^
+  --copyright "Copyright © makenosense" ^
   --win-dir-chooser ^
   --win-shortcut ^
   --win-per-user-install ^
