@@ -96,5 +96,7 @@ call "%JAVA_HOME%\bin\jpackage" ^
   --copyright "Copyright © makenosense" ^
   --win-dir-chooser ^
   --win-shortcut ^
+  --win-shortcut-prompt ^
   --win-per-user-install ^
-  --win-menu
+  --win-menu ^
+  --win-menu-group makenosense
