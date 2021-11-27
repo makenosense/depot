@@ -1,0 +1,8 @@
+.detail-pane {
+    -fx-pref-width: 400;
+}
+
+.label {
+    -fx-font-size: 13px;
+    -fx-padding: 5 10 5 5;
+}

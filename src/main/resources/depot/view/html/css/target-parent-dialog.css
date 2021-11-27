@@ -1,0 +1,61 @@
+.tree-view {
+    -fx-pref-width: 400px;
+    -fx-pref-height: 250px;
+    -fx-background-color: #3c3f41;
+    -fx-border-color: #323232;
+    -fx-border-width: 1;
+    -fx-border-insets: 20 15 5 15;
+    -fx-padding: 0;
+}
+
+.tree-cell {
+    -fx-font-size: 13px;
+    -fx-text-fill: #cccccc;
+    -fx-background-color: inherit;
+    -fx-indent: 16;
+}
+
+.tree-cell:selected {
+    -fx-text-fill: #eeeeee;
+    -fx-background-color: #3697dc;
+}
+
+.tree-cell > .tree-disclosure-node {
+    -fx-padding: 3 8 3 2;
+}
+
+.tree-cell .arrow {
+    -fx-font-size: 16px;
+    -fx-shape: "M 0 -8 L 0 8 L 8 0 Z";
+    -fx-background-color: transparent;
+    -fx-border-color: #eeeeee;
+    -fx-border-width: 1;
+}
+
+.tree-cell:expanded .arrow {
+    -fx-scale-shape: false;
+    -fx-rotate: 0;
+    -fx-shape: "M 0 5 L 10 -5 L 10 5 Z";
+    -fx-background-color: #eeeeee;
+    -fx-border-width: 0;
+}
+
+.tree-cell:selected .arrow {
+    -fx-border-color: #ffffff;
+}
+
+.tree-cell:expanded:selected .arrow {
+    -fx-background-color: #ffffff;
+}
+
+.glyph-icon {
+    -fx-fill: #fdd84a;
+}
+
+.dialog-pane > .button-bar {
+    -fx-background-color: #3c3f41;
+}
+
+.dialog-pane > .button-bar > .container {
+    -fx-padding: 5 15 10 15;
+}

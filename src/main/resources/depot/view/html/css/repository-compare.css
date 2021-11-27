@@ -1,0 +1,121 @@
+body {
+    color: #bababa;
+    background-color: #3c3f41;
+    font-family: PingFangSC-Regular, "Microsoft YaHei", sans-serif;
+    -webkit-user-select: none;
+    cursor: default;
+    height: 100vh;
+}
+
+#compare-ops {
+    width: 100%;
+    padding: 5px 20px;
+}
+
+#compare-ops button {
+    color: inherit;
+    background-color: rgba(255, 255, 255, 0);
+    border: none;
+    padding: 3px 10px;
+    height: auto;
+    line-height: 20px;
+    cursor: default;
+    font-size: 13px;
+    border-radius: 4px;
+}
+
+#compare-ops button > i {
+    margin-right: 3px;
+}
+
+#compare-ops button:hover {
+    color: #ffffff;
+    background-color: #515151;
+}
+
+.jstree-anchor {
+    font-size: 13px;
+    color: inherit !important;
+    text-shadow: unset !important;
+}
+
+.jstree-anchor i {
+    font-size: 13px;
+    color: inherit !important;
+}
+
+#compare-tree {
+    position: fixed;
+    top: 36px;
+    left: 20px;
+    right: 20px;
+    bottom: 100px;
+    border: 1px solid #323232;
+    overflow: scroll;
+}
+
+li.dir .jstree-anchor:not(.jstree-hovered, .jstree-clicked) {
+    color: #bababa !important;
+}
+
+li.added .jstree-anchor:not(.jstree-hovered, .jstree-clicked) {
+    color: #00c000 !important;
+}
+
+li.modified .jstree-anchor:not(.jstree-hovered, .jstree-clicked) {
+    color: #6896ee !important;
+}
+
+li.deleted .jstree-anchor:not(.jstree-hovered, .jstree-clicked) {
+    color: #666666 !important;
+}
+
+.path-comment:not(.jstree-hovered *, .jstree-clicked *) {
+    color: #787878;
+}
+
+.jstree-default-dark {
+    background-color: unset !important;
+}
+
+.jstree-hovered {
+    color: #bababa !important;
+    background-color: #515151 !important;
+}
+
+.jstree-clicked {
+    color: #eeeeee !important;
+    background-color: #3697dc !important;
+}
+
+#compare-detail {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 100px;
+}
+
+.compare-prop-panel {
+    margin: 5px 0;
+    padding: 0 20px;
+    font-size: 13px;
+}
+
+.compare-prop-panel:nth-child(1) {
+    border-right: 1px solid #515151;
+}
+
+.compare-prop-panel p {
+    line-height: 20px;
+}
+
+.compare-prop-panel p:nth-child(1) {
+    font-size: 14px;
+    line-height: 25px;
+    font-weight: bold;
+}
+
+.compare-prop-panel hr {
+    margin: 2px 0;
+}
