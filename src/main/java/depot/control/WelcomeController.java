@@ -80,7 +80,7 @@ public class WelcomeController extends BaseController {
             getWindow().call("switchToSidebarTab", "sidebar-repo-list");
         }
 
-        private void checkRepositoryConfig(RepositoryConfig repositoryConfig) throws Exception {
+        private boolean checkRepositoryConfig(RepositoryConfig repositoryConfig) throws Exception {
             if (RepositoryConfig.PROTOCOL_FILE.equals(repositoryConfig.getProtocol())) {
                 File repositoryDir = new File(repositoryConfig.getPath());
                 if (!repositoryDir.isDirectory()
@@ -89,8 +89,13 @@ public class WelcomeController extends BaseController {
                         throw new Exception("仓库文件夹不存在");
                     }
                     SVNRepositoryFactory.createLocalRepository(repositoryDir, true, false);
+                    if (repositoryConfig.getRepositoryUUID() != null) {
+                        RepositoryConfig.remove(repositoryConfig.getRepositoryUUID());
+                        repositoryConfig.setRepositoryUUID(null);
+                    }
                 }
             }
+            return repositoryConfig.getRepositoryUUID() == null;
         }
 
         /**
@@ -163,8 +168,7 @@ public class WelcomeController extends BaseController {
                 protected Service createService() throws Exception {
                     mainApp.showProgress(0, "初始化仓库配置");
                     RepositoryConfig repositoryConfig = new RepositoryConfig(params);
-                    checkRepositoryConfig(repositoryConfig);
-                    return new OpenRepositoryService(repositoryConfig, true);
+                    return new OpenRepositoryService(repositoryConfig, checkRepositoryConfig(repositoryConfig));
                 }
 
                 @Override
@@ -189,8 +193,7 @@ public class WelcomeController extends BaseController {
                 protected Service createService() throws Exception {
                     mainApp.showProgress(0, "加载仓库配置");
                     RepositoryConfig repositoryConfig = RepositoryConfig.loadAndMoveFirst(uuid);
-                    checkRepositoryConfig(repositoryConfig);
-                    return new OpenRepositoryService(repositoryConfig, false);
+                    return new OpenRepositoryService(repositoryConfig, checkRepositoryConfig(repositoryConfig));
                 }
 
                 @Override
