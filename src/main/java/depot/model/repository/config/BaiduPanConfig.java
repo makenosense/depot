@@ -16,7 +16,6 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.core5.net.URIBuilder;
 import org.apache.hc.core5.net.URLEncodedUtils;
 import org.json.JSONObject;
@@ -26,12 +25,8 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.*;
@@ -43,8 +38,7 @@ public class BaiduPanConfig extends BaseModel implements ComparableRepositoryCon
     private static final Logger LOGGER = Logger.getLogger("BaiduPanConfig");
     public static final String TITLE = "百度网盘";
     private static final String XML_PATH = Paths.get(APP_HOME, "BaiduPanConfig.xml").toString();
-    private static final File AVATAR_FILE = Paths.get(APP_HOME, "BaiduPanAvatar.jpg").toFile();
-    private static final URL DEFAULT_AVATAR_URL = Objects.requireNonNull(MainApp.class.getResource("view/html/img/avatar.jpg"));
+    private static final String DEFAULT_AVATAR_URL = Objects.requireNonNull(MainApp.class.getResource("view/html/img/avatar.jpg")).toExternalForm();
     private static final String CLIENT_ID = "vV7S9UGMguhcwCU6TAlNF3voVZqdiXiv";
     private static URI authUri = null;
     private static URI authSuccessUri = null;
@@ -162,7 +156,6 @@ public class BaiduPanConfig extends BaseModel implements ComparableRepositoryCon
 
     public static void clearCache() {
         new File(XML_PATH).delete();
-        AVATAR_FILE.delete();
     }
 
     public static boolean isInvalidAccessTokenErrorNo(int errorNo) {
@@ -208,8 +201,7 @@ public class BaiduPanConfig extends BaseModel implements ComparableRepositoryCon
         return StringUtil.notEmpty(accessToken)
                 && StringUtil.notEmpty(rootPath)
                 && StringUtil.notEmpty(userName)
-                && StringUtil.notEmpty(userAvatarUrl)
-                && AVATAR_FILE.isFile();
+                && StringUtil.notEmpty(userAvatarUrl);
     }
 
     public boolean hasAccessToken() {
@@ -227,15 +219,6 @@ public class BaiduPanConfig extends BaseModel implements ComparableRepositoryCon
                 if (errorNo == 0) {
                     userName = userInfoObj.getString("baidu_name");
                     userAvatarUrl = userInfoObj.getString("avatar_url");
-                    try (CloseableHttpResponse response = HttpUtil.getAsResponse(URI.create(userAvatarUrl));
-                         InputStream inputStream = response.getEntity().getContent();
-                         FileOutputStream fileOutputStream = new FileOutputStream(AVATAR_FILE)) {
-                        int readLength;
-                        byte[] tmp = new byte[4096];
-                        while ((readLength = inputStream.read(tmp)) > 0) {
-                            fileOutputStream.write(tmp, 0, readLength);
-                        }
-                    }
                 } else if (isInvalidAccessTokenErrorNo(errorNo)) {
                     clearCache();
                 } else {
@@ -442,12 +425,7 @@ public class BaiduPanConfig extends BaseModel implements ComparableRepositoryCon
     }
 
     public String getAvatarExternalUrl() {
-        try {
-            return (AVATAR_FILE.isFile() ? AVATAR_FILE.toURI().toURL() : DEFAULT_AVATAR_URL).toExternalForm();
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
-        return null;
+        return StringUtil.notEmpty(userAvatarUrl) ? userAvatarUrl : DEFAULT_AVATAR_URL;
     }
 
     public String getAccessToken() {
