@@ -77,7 +77,7 @@ $JAVA_HOME/bin/jlink \
   --compress=2 \
   --strip-debug \
   --add-modules "${detected_modules}${manual_modules}" \
-  --include-locales=en,de \
+  --include-locales=en,zh \
   --output target/java-runtime
 
 # ------ PACKAGING ----------------------------------------------------------
