@@ -11,7 +11,7 @@
 
 JAVA_HOME=~/Library/Java/JavaVirtualMachines/openjdk-17.0.1/Contents/Home
 JAVA_VERSION=17
-MAIN_JAR="depot-$PROJECT_VERSION.jar"
+MAIN_JAR="$APP_NAME-$PROJECT_VERSION.jar"
 
 # Set desired installer type: "dmg", "pkg".
 INSTALLER_TYPE=pkg
@@ -45,7 +45,7 @@ detected_modules=$($JAVA_HOME/bin/jdeps \
   --ignore-missing-deps \
   --print-module-deps \
   --class-path "target/installer/input/libs/*" \
-  target/classes/depot/MainApp.class)
+  target/classes/$APP_NAME/MainApp.class)
 echo "detected modules: ${detected_modules}"
 
 # ------ MANUAL MODULES -----------------------------------------------------
@@ -89,14 +89,14 @@ $JAVA_HOME/bin/jpackage \
   --type $INSTALLER_TYPE \
   --dest target/installer \
   --input target/installer/input/libs \
-  --name depot \
-  --main-class depot.AppLauncher \
+  --name $APP_NAME \
+  --main-class $APP_NAME.AppLauncher \
   --main-jar "${MAIN_JAR}" \
   --java-options -Xmx2048m \
   --runtime-image target/java-runtime \
-  --icon src/main/resources/depot/view/html/img/logo.icns \
+  --icon $ICON_PATH \
   --app-version "${APP_VERSION}" \
-  --vendor "makenosense" \
-  --copyright "Copyright © makenosense" \
-  --mac-package-identifier makenosense.depot \
-  --mac-package-name depot
+  --vendor "$GROUP_NAME" \
+  --copyright "Copyright © $GROUP_NAME" \
+  --mac-package-identifier $GROUP_NAME.$APP_NAME \
+  --mac-package-name $APP_NAME

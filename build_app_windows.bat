@@ -11,7 +11,7 @@ rem APP_VERSION: the application version, e.g. 1.0.0, shown in "about" dialog
 
 set JAVA_HOME=C:\Users\Nathan\.jdks\openjdk-17.0.1
 set JAVA_VERSION=17
-set MAIN_JAR=depot-%PROJECT_VERSION%.jar
+set MAIN_JAR=%APP_NAME%-%PROJECT_VERSION%.jar
 
 rem Set desired installer type: "app-image" "msi" "exe".
 set INSTALLER_TYPE=exe
@@ -38,7 +38,7 @@ echo detecting required modules
   --multi-release %JAVA_VERSION% ^
   --ignore-missing-deps ^
   --class-path "target\installer\input\libs\*" ^
-  --print-module-deps target\classes\depot\MainApp.class > deps.tmp
+  --print-module-deps target\classes\%APP_NAME%\MainApp.class > deps.tmp
 
 set /p detected_modules=<deps.tmp
 
@@ -85,18 +85,18 @@ call "%JAVA_HOME%\bin\jpackage" ^
   --type %INSTALLER_TYPE% ^
   --dest target/installer ^
   --input target/installer/input/libs ^
-  --name depot ^
-  --main-class depot.AppLauncher ^
+  --name %APP_NAME% ^
+  --main-class %APP_NAME%.AppLauncher ^
   --main-jar %MAIN_JAR% ^
   --java-options -Xmx2048m ^
   --runtime-image target/java-runtime ^
-  --icon src/main/resources/depot/view/html/img/logo.ico ^
+  --icon %ICON_PATH% ^
   --app-version %APP_VERSION% ^
-  --vendor "makenosense" ^
-  --copyright "Copyright © makenosense" ^
+  --vendor "%GROUP_NAME%" ^
+  --copyright "Copyright © %GROUP_NAME%" ^
   --win-dir-chooser ^
   --win-shortcut ^
   --win-shortcut-prompt ^
   --win-per-user-install ^
   --win-menu ^
-  --win-menu-group makenosense
+  --win-menu-group %GROUP_NAME%

@@ -169,12 +169,21 @@
                             <workingDirectory>${project.basedir}</workingDirectory>
                             <executable>./build_app_mac.sh</executable>
                             <environmentVariables>
+                                <GROUP_NAME>
+                                    ${project.groupId}
+                                </GROUP_NAME>
+                                <APP_NAME>
+                                    ${project.artifactId}
+                                </APP_NAME>
                                 <APP_VERSION>
                                     ${project.version}
                                 </APP_VERSION>
                                 <PROJECT_VERSION>
                                     ${project.version}
                                 </PROJECT_VERSION>
+                                <ICON_PATH>
+                                    src/main/resources/depot/view/html/img/logo.icns
+                                </ICON_PATH>
                             </environmentVariables>
                         </configuration>
                     </plugin>
@@ -208,6 +217,12 @@
                             <workingDirectory>${project.basedir}</workingDirectory>
                             <executable>./build_app_linux.sh</executable>
                             <environmentVariables>
+                                <GROUP_NAME>
+                                    ${project.groupId}
+                                </GROUP_NAME>
+                                <APP_NAME>
+                                    ${project.artifactId}
+                                </APP_NAME>
                                 <APP_VERSION>
                                     ${project.version}
                                 </APP_VERSION>
@@ -247,12 +262,21 @@
                             <workingDirectory>${project.basedir}</workingDirectory>
                             <executable>build_app_windows.bat</executable>
                             <environmentVariables>
+                                <GROUP_NAME>
+                                    ${project.groupId}
+                                </GROUP_NAME>
+                                <APP_NAME>
+                                    ${project.artifactId}
+                                </APP_NAME>
                                 <APP_VERSION>
                                     ${project.version}
                                 </APP_VERSION>
                                 <PROJECT_VERSION>
                                     ${project.version}
                                 </PROJECT_VERSION>
+                                <ICON_PATH>
+                                    src/main/resources/depot/view/html/img/logo.ico
+                                </ICON_PATH>
                             </environmentVariables>
                         </configuration>
                     </plugin>
