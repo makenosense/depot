@@ -274,15 +274,10 @@ public class RepositoryDirEntry {
     /**
      * 比较器
      */
-    private static final String STARTS_WITH_LETTER_OR_DIGIT = "^\\w";
-    private static final Collator CHINESE_COMPARATOR = Collator.getInstance(Locale.CHINA);
+    private static final Collator COLLATOR = Collator.getInstance();
 
     private static int nameCompare(RepositoryDirEntry o1, RepositoryDirEntry o2) {
-        if (o1.getName().matches(STARTS_WITH_LETTER_OR_DIGIT)
-                || o2.getName().matches(STARTS_WITH_LETTER_OR_DIGIT)) {
-            return o1.getName().compareToIgnoreCase(o2.getName());
-        }
-        return CHINESE_COMPARATOR.compare(o1.getName(), o2.getName());
+        return COLLATOR.compare(o1.getName(), o2.getName());
     }
 
     private static int mtimeCompare(RepositoryDirEntry o1, RepositoryDirEntry o2) {
