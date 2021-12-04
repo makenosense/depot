@@ -136,8 +136,8 @@ public class RepositoryCompareController extends BaseController {
             }, errorMsg));
         }
 
-        public Object[] getCompareTreeNodeArray() {
-            return compareResult.buildCompareTreeNodeArray();
+        public Object[] getCompareTreeNodeChildrenArray(String parentId) {
+            return compareResult.getCompareTreeNodeChildrenArray(parentId);
         }
     }
 

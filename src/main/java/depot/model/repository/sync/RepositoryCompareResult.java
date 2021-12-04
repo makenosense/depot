@@ -4,16 +4,13 @@ import depot.model.repository.config.ComparableRepositoryConfig;
 import depot.model.repository.path.RepositoryPathNode;
 
 import java.nio.file.Paths;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class RepositoryCompareResult {
 
     private final HashMap<RepositoryPathNode, RepositoryCompareEntry> compareEntries;
-    private Object[] compareTreeNodes;
+    private LinkedList<RepositoryCompareTreeNode> compareTreeNodes;
 
     public interface CollectListener {
         void handle(RepositoryPathNode pathNode) throws Exception;
@@ -41,7 +38,13 @@ public class RepositoryCompareResult {
                 .collect(Collectors.toMap(entry -> entry.getKey().toString(), Map.Entry::getValue));
     }
 
-    public Object[] buildCompareTreeNodeArray() {
+    public synchronized Object[] getCompareTreeNodeChildrenArray(String parentId) {
+        return (compareTreeNodes != null ? compareTreeNodes : buildCompareTreeNodes()).parallelStream()
+                .filter(node -> node.parent.equals(parentId))
+                .toArray();
+    }
+
+    private LinkedList<RepositoryCompareTreeNode> buildCompareTreeNodes() {
         Map<String, RepositoryCompareEntry> changedEntries = getChangedEntries();
         HashMap<String, RepositoryCompareTreeNode> treeNodes = new HashMap<>();
         changedEntries.keySet().stream().sorted().forEach(key -> {
@@ -96,7 +99,8 @@ public class RepositoryCompareResult {
             }
         });
         refineCompareTreeNodes(treeNodes);
-        compareTreeNodes = treeNodes.values().toArray();
+        compareTreeNodes = new LinkedList<>(treeNodes.values());
+        setCompareTreeNodeChildrenProperty(compareTreeNodes);
         return compareTreeNodes;
     }
 
@@ -145,5 +149,12 @@ public class RepositoryCompareResult {
                 node.comment = String.format("%d file%s", childrenFileCount, childrenFileCount > 1 ? "s" : "");
             }
         });
+    }
+
+    private void setCompareTreeNodeChildrenProperty(LinkedList<RepositoryCompareTreeNode> compareTreeNodes) {
+        Set<String> parentIdSet = compareTreeNodes.stream()
+                .map(node -> node.parent)
+                .collect(Collectors.toSet());
+        compareTreeNodes.forEach(node -> node.children = parentIdSet.contains(node.id));
     }
 }

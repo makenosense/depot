@@ -17,7 +17,7 @@ public class RepositoryCompareTreeNode extends BaseTreeNode {
     }
 
     public RepositoryCompareTreeNode(String id, String parent, String type, String text, String comment) {
-        super(id, parent, type, text, comment, true);
+        super(id, parent, type, text, comment, false);
     }
 
     public void setSourceProperty(String propertyName, String propertyValue) {

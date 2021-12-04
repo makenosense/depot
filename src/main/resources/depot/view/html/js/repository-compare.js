@@ -25,36 +25,39 @@ function renewCompareResult() {
 
 function createCompareTree() {
     tryRun(function () {
-        let data = [];
-        $.each(javaApi.getCompareTreeNodeArray(), function (idx, treeNode) {
-            data.push({
-                id: treeNode.id,
-                parent: treeNode.parent,
-                type: treeNode.type,
-                text: treeNode.text
-                    + (treeNode.comment.length > 0 ?
-                        $("<span></span>")
-                            .addClass("path-comment")
-                            .text(" " + treeNode.comment)
-                            .prop("outerHTML") : ""),
-                state: {
-                    opened: treeNode.state.opened,
-                },
-                data: {
-                    sourceProp: {
-                        size: treeNode.getSourceProperty(propSize),
-                        mtime: treeNode.getSourceProperty(propMtime),
-                        checksum: treeNode.getSourceProperty(propChecksum),
+        compareTreeOptions.core.data = function (node, callback) {
+            let children = [];
+            $.each(javaApi.getCompareTreeNodeChildrenArray(node.id), function (idx, treeNode) {
+                children.push({
+                    id: treeNode.id,
+                    parent: treeNode.parent,
+                    type: treeNode.type,
+                    text: treeNode.text
+                        + (treeNode.comment.length > 0 ?
+                            $("<span></span>")
+                                .addClass("path-comment")
+                                .text(" - " + treeNode.comment)
+                                .prop("outerHTML") : ""),
+                    state: {
+                        opened: treeNode.state.opened,
                     },
-                    targetProp: {
-                        size: treeNode.getTargetProperty(propSize),
-                        mtime: treeNode.getTargetProperty(propMtime),
-                        checksum: treeNode.getTargetProperty(propChecksum),
+                    children: treeNode.children,
+                    data: {
+                        sourceProp: {
+                            size: treeNode.getSourceProperty(propSize),
+                            mtime: treeNode.getSourceProperty(propMtime),
+                            checksum: treeNode.getSourceProperty(propChecksum),
+                        },
+                        targetProp: {
+                            size: treeNode.getTargetProperty(propSize),
+                            mtime: treeNode.getTargetProperty(propMtime),
+                            checksum: treeNode.getTargetProperty(propChecksum),
+                        },
                     },
-                },
+                });
             });
-        });
-        compareTreeOptions.core.data = data;
+            callback.call(this, children);
+        };
         destroyCompareTree();
         $("#compare-tree").jstree(compareTreeOptions).on("select_node.jstree", function (e, data) {
             let sourceProp = data.node.data.sourceProp;
