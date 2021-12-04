@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class RepositoryLogData extends BaseModel implements Serializable {
     private static final long serialVersionUID = 20210308000L;
@@ -20,9 +21,9 @@ public class RepositoryLogData extends BaseModel implements Serializable {
     private static final Logger LOGGER = Logger.getLogger("RepositoryLogData");
 
     private String repositoryUUID;
-    private LinkedList<SVNLogEntry> logEntries;
+    private LinkedList<SVNLogEntry> logEntries = new LinkedList<>();
     private Long lastChangeTime;
-    private transient Object[] logTreeNodes;
+    private transient LinkedList<RepositoryLogTreeNode> logTreeNodes;
 
     static {
         File cache = new File(CACHE_PATH);
@@ -37,7 +38,6 @@ public class RepositoryLogData extends BaseModel implements Serializable {
 
     private RepositoryLogData(String repositoryUUID) {
         this.repositoryUUID = repositoryUUID;
-        logEntries = new LinkedList<>();
     }
 
     private static File getLogCacheFile(String repositoryUUID) {
@@ -148,7 +148,14 @@ public class RepositoryLogData extends BaseModel implements Serializable {
         pathNodes.keySet().removeIf(key -> childrenCount.getOrDefault(key, 0) < 0);
     }
 
-    public Object[] buildLogTreeNodeArray() {
+    private void setLogTreeNodeChildrenProperty(LinkedList<RepositoryLogTreeNode> logTreeNodes) {
+        Set<String> parentIdSet = logTreeNodes.stream()
+                .map(node -> node.parent)
+                .collect(Collectors.toSet());
+        logTreeNodes.forEach(node -> node.children = parentIdSet.contains(node.id));
+    }
+
+    private LinkedList<RepositoryLogTreeNode> buildLogTreeNodes() {
         HashMap<String, RepositoryLogTreeNode> dateNodes = new HashMap<>();
         HashMap<Long, RepositoryLogTreeNode> revisionNodes = new HashMap<>();
         HashMap<String, RepositoryLogTreeNode> pathNodes = new HashMap<>();
@@ -192,13 +199,19 @@ public class RepositoryLogData extends BaseModel implements Serializable {
         if (latestDateString != null) {
             dateNodes.get(latestDateString).state.opened = true;
         }
-        LinkedList<RepositoryLogTreeNode> nodes = new LinkedList<>();
-        nodes.addAll(dateNodes.values());
-        nodes.addAll(revisionNodes.values());
+        logTreeNodes = new LinkedList<>();
+        logTreeNodes.addAll(dateNodes.values());
+        logTreeNodes.addAll(revisionNodes.values());
         reduceLogTreePathNodes(pathNodes);
-        nodes.addAll(pathNodes.values());
-        logTreeNodes = nodes.toArray();
+        logTreeNodes.addAll(pathNodes.values());
+        setLogTreeNodeChildrenProperty(logTreeNodes);
         return logTreeNodes;
+    }
+
+    public synchronized Object[] getLogTreeNodeChildrenArray(String parentId) {
+        return (logTreeNodes != null ? logTreeNodes : buildLogTreeNodes()).parallelStream()
+                .filter(node -> node.parent.equals(parentId))
+                .toArray();
     }
 
     public String getRepositoryUUID() {
@@ -215,6 +228,11 @@ public class RepositoryLogData extends BaseModel implements Serializable {
 
     public void setLogEntries(LinkedList<SVNLogEntry> logEntries) {
         this.logEntries = logEntries;
+    }
+
+    public void appendLogEntry(SVNLogEntry logEntry) {
+        logTreeNodes = null;
+        logEntries.add(logEntry);
     }
 
     public Long getLastChangeTime() {

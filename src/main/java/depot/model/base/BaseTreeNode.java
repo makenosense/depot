@@ -8,6 +8,7 @@ public class BaseTreeNode {
     public String text;
     public String comment;
     public State state = new State();
+    public boolean children = true;
 
     public static class State {
 

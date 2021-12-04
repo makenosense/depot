@@ -345,7 +345,7 @@ public class InterfaceController extends BaseController {
                                         if (newLogEntry.getRevision() != repositoryLogData.getYoungestRevision() + 1) {
                                             throw new Exception("版本号不连续");
                                         }
-                                        repositoryLogData.getLogEntries().push(newLogEntry);
+                                        repositoryLogData.appendLogEntry(newLogEntry);
                                         repositoryLogData.setLastChangeTime(System.currentTimeMillis());
                                     }
                                     repositoryLogData.save();
@@ -1005,8 +1005,8 @@ public class InterfaceController extends BaseController {
                     new LoadRepositoryLogService(rebuild), "仓库历史记录加载失败"));
         }
 
-        public Object[] getLogTreeNodeArray() {
-            return repositoryLogData.buildLogTreeNodeArray();
+        public Object[] getLogTreeNodeChildrenArray(String parentId) {
+            return repositoryLogData.getLogTreeNodeChildrenArray(parentId);
         }
 
         /**

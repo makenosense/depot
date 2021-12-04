@@ -25,31 +25,32 @@ function setLogCacheRefreshingTime(lastRefreshingTime) {
 
 function createLogTree() {
     tryRun(function () {
-        let data = [];
-        $.each(javaApi.getLogTreeNodeArray(), function (idx, treeNode) {
-            data.push({
-                id: treeNode.id,
-                parent: treeNode.parent,
-                type: treeNode.type,
-                text: treeNode.text
-                    + (treeNode.comment.length > 0 ?
-                        $("<span></span>")
-                            .addClass("path-comment")
-                            .text(" - " + treeNode.comment)
-                            .prop("outerHTML") : ""),
-                state: {
-                    opened: treeNode.state.opened,
-                },
+        logTreeOptions.core.data = function (node, callback) {
+            let children = [];
+            $.each(javaApi.getLogTreeNodeChildrenArray(node.id), function (idx, treeNode) {
+                children.push({
+                    id: treeNode.id,
+                    parent: treeNode.parent,
+                    type: treeNode.type,
+                    text: treeNode.text
+                        + (treeNode.comment.length > 0 ?
+                            $("<span></span>")
+                                .addClass("path-comment")
+                                .text(" - " + treeNode.comment)
+                                .prop("outerHTML") : ""),
+                    state: {
+                        opened: treeNode.state.opened,
+                    },
+                    children: treeNode.children,
+                });
             });
-        });
-        logTreeOptions.core.data = data;
+            callback.call(this, children);
+        };
         destroyLogTree();
         $("#log-tree").jstree(logTreeOptions).on("select_node.jstree", function (e, data) {
             let logTree = getLogTree();
             logTree.deselect_node(data.node);
-            if (data.node.children.length > 0) {
-                logTree.toggle_node(data.node);
-            }
+            logTree.toggle_node(data.node);
         });
     });
 }
