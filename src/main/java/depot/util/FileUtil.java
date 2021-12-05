@@ -1,5 +1,9 @@
 package depot.util;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 public class FileUtil {
 
     public static String getSizeString(double size) {
@@ -26,5 +30,17 @@ public class FileUtil {
             }
         }
         return String.format(String.format("%%.%df %%s", precision), size, unit);
+    }
+
+    public static long getUsedSize(File file) {
+        try {
+            return Files.walk(file.toPath())
+                    .map(Path::toFile)
+                    .filter(File::isFile)
+                    .mapToLong(File::length)
+                    .sum();
+        } catch (Exception ignored) {
+        }
+        return 0L;
     }
 }
