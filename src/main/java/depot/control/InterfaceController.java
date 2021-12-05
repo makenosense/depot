@@ -62,6 +62,7 @@ public class InterfaceController extends BaseController {
     private final JavaApi javaApi = new JavaApi();
     private final RepositoryPath path = new RepositoryPath();
 
+    private RepositoryConfig repositoryConfig;
     private SVNRepository repository;
 
     @FXML
@@ -1007,6 +1008,12 @@ public class InterfaceController extends BaseController {
             String successText = "校验成功";
             String verifyProgressText = "正在校验";
             String progressTextTpl = verifyProgressText + "：%d / %d";
+
+            if (!RepositoryConfig.PROTOCOL_FILE.equals(repositoryConfig.getProtocol())) {
+                AlertUtil.warn("仅支持校验本地仓库");
+                return;
+            }
+
             startExclusiveService(buildNonInteractiveService(new Service<Void>() {
                 @Override
                 protected Task<Void> createTask() {
@@ -1017,10 +1024,6 @@ public class InterfaceController extends BaseController {
                         @Override
                         protected Void call() throws Exception {
                             try {
-                                RepositoryConfig config = RepositoryConfig.load(repository.getRepositoryUUID(true));
-                                if (!RepositoryConfig.PROTOCOL_FILE.equals(config.getProtocol())) {
-                                    throw new Exception("仅支持校验本地仓库");
-                                }
                                 latestRevision = repository.getLatestRevision();
                                 Platform.runLater(() -> {
                                     mainApp.showProgress(-1, verifyProgressText);
@@ -1029,7 +1032,7 @@ public class InterfaceController extends BaseController {
                                 SvnOperationFactory svnOperationFactory = new SvnOperationFactory();
                                 svnOperationFactory.setAuthenticationManager(repository.getAuthenticationManager());
                                 SvnRepositoryVerify verify = svnOperationFactory.createRepositoryVerify();
-                                verify.setRepositoryRoot(new File(config.getPath()));
+                                verify.setRepositoryRoot(new File(repositoryConfig.getPath()));
                                 verify.setReceiver((target, svnAdminEvent) -> updateProgress(svnAdminEvent.getRevision()));
                                 verify.run();
                                 Platform.runLater(() -> AlertUtil.info(successText));
@@ -1219,6 +1222,10 @@ public class InterfaceController extends BaseController {
                 getWindow().call("setDownloadParent", newDownloadParent.getAbsolutePath(), enableSave);
             }
         }
+    }
+
+    public void setRepositoryConfig(RepositoryConfig repositoryConfig) {
+        this.repositoryConfig = repositoryConfig;
     }
 
     public void setRepository(SVNRepository repository) {

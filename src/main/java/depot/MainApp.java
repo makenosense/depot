@@ -124,6 +124,7 @@ public class MainApp extends Application {
 
     public void showInterface(RepositoryConfig repositoryConfig, SVNRepository repository) {
         initAndShowStage(primaryStage, "view/fxml/Interface.fxml");
+        ((InterfaceController) primaryStage.getScene().getUserData()).setRepositoryConfig(repositoryConfig);
         ((InterfaceController) primaryStage.getScene().getUserData()).setRepository(repository);
         primaryStage.setTitle(APP_NAME + " - " + repositoryConfig.getTitle() + " (" + repositoryConfig.getUrl() + ")");
     }
