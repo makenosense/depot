@@ -458,6 +458,12 @@ $(function () {
 
 /*仓库管理*/
 $(function () {
+    $("#repo-ops-admin-compress").click(function () {
+        tryRun(function () {
+            javaApi.repoAdminCompress();
+        });
+    });
+
     $("#repo-ops-admin-verify").click(function () {
         tryRun(function () {
             javaApi.repoAdminVerify();

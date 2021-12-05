@@ -97,7 +97,7 @@ public class RepositoryLogData extends BaseModel implements Serializable {
                 Path nodePath = Paths.get(revisionNodePath.toString(), path);
                 Path parentNodePath = nodePath.getParent();
                 String nodeName = nodePath.getFileName().toString();
-                String nodeType = (kind + "_" + type).toLowerCase(Locale.ROOT);
+                String nodeType = (kind + "_" + type).toLowerCase();
                 String nodeComment = "";
                 if (copyPath != null && copyRevision >= 0) {
                     String commentAction = "copied";

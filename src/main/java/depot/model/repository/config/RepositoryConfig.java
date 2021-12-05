@@ -36,6 +36,7 @@ public class RepositoryConfig extends BaseModel implements ComparableRepositoryC
     private String repositoryUUID;
     private String protocol;
     private String host;
+    private transient String portString;
     private int port;
     private String path;
     private String authType;
@@ -60,14 +61,17 @@ public class RepositoryConfig extends BaseModel implements ComparableRepositoryC
     public RepositoryConfig(JSObject params) throws Exception {
         protocol = (String) params.getMember("protocol");
         host = (String) params.getMember("host");
-        String portString = (String) params.getMember("port");
+        portString = (String) params.getMember("port");
         path = (String) params.getMember("path");
         authType = (String) params.getMember("authType");
         userName = (String) params.getMember("userName");
         password = (String) params.getMember("password");
         privateKey = (String) params.getMember("privateKey");
         passphrase = (String) params.getMember("passphrase");
+        buildParams();
+    }
 
+    private void buildParams() throws Exception {
         protocol = protocol.toLowerCase();
         if (!SUPPORTED_PROTOCOLS.contains(protocol)) {
             throw new Exception("不支持的协议类型（" + protocol + "）");
@@ -75,7 +79,7 @@ public class RepositoryConfig extends BaseModel implements ComparableRepositoryC
         String defaultHost = !PROTOCOL_FILE.equals(protocol) ? "localhost" : null;
         host = host == null || host.isEmpty() || PROTOCOL_FILE.equals(protocol) ? defaultHost : host;
         port = -1;
-        if (!portString.isEmpty() && !PROTOCOL_FILE.equals(protocol)) {
+        if (portString != null && !portString.isEmpty() && !PROTOCOL_FILE.equals(protocol)) {
             try {
                 port = Integer.parseInt(portString);
             } catch (Exception e) {
@@ -91,6 +95,17 @@ public class RepositoryConfig extends BaseModel implements ComparableRepositoryC
         String defaultPrivateKey = AUTH_TYPE_PRIVATE_KEY.equals(authType) ? Paths.get(USER_HOME, ".ssh/id_rsa").toString() : null;
         privateKey = privateKey == null || privateKey.isEmpty() || !AUTH_TYPE_PRIVATE_KEY.equals(authType) ? defaultPrivateKey : privateKey;
         passphrase = passphrase == null || passphrase.isEmpty() || !AUTH_TYPE_PRIVATE_KEY.equals(authType) ? null : passphrase;
+    }
+
+    public static RepositoryConfig newFileRepositoryConfig(String path, String userName, String password) throws Exception {
+        RepositoryConfig config = new RepositoryConfig();
+        config.setProtocol(PROTOCOL_FILE);
+        config.setPath(path);
+        config.setAuthType(AUTH_TYPE_PASSWORD);
+        config.setUserName(userName);
+        config.setPassword(password);
+        config.buildParams();
+        return config;
     }
 
     public SVNRepository getRepository() throws Exception {
@@ -218,9 +233,11 @@ public class RepositoryConfig extends BaseModel implements ComparableRepositoryC
         RepositoryConfig config = repositoryConfigs.stream()
                 .filter(repositoryConfig -> repositoryConfig.repositoryUUID.equals(uuid))
                 .findFirst()
-                .orElseThrow(() -> new Exception("未找到UUID为“" + uuid + "”的仓库配置"));
-        repositoryConfigs.remove(config);
-        saveAll(repositoryConfigs);
+                .orElse(null);
+        if (config != null) {
+            repositoryConfigs.remove(config);
+            saveAll(repositoryConfigs);
+        }
         return config;
     }
 

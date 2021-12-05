@@ -36,20 +36,31 @@ import org.tmatesoft.svn.core.internal.wc.SVNErrorManager;
 import org.tmatesoft.svn.core.internal.wc.SVNFileUtil;
 import org.tmatesoft.svn.core.io.ISVNEditor;
 import org.tmatesoft.svn.core.io.SVNRepository;
+import org.tmatesoft.svn.core.io.SVNRepositoryFactory;
 import org.tmatesoft.svn.core.io.diff.SVNDeltaGenerator;
 import org.tmatesoft.svn.core.io.diff.SVNDiffWindow;
 import org.tmatesoft.svn.core.replicator.ISVNReplicationHandler;
 import org.tmatesoft.svn.core.replicator.SVNRepositoryReplicator;
+import org.tmatesoft.svn.core.wc.SVNRevision;
 import org.tmatesoft.svn.core.wc2.SvnOperationFactory;
+import org.tmatesoft.svn.core.wc2.admin.SvnRepositoryDump;
+import org.tmatesoft.svn.core.wc2.admin.SvnRepositoryLoad;
 import org.tmatesoft.svn.core.wc2.admin.SvnRepositoryVerify;
 import org.tmatesoft.svn.util.SVNLogType;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -134,6 +145,7 @@ public class InterfaceController extends BaseController {
         private final RepositoryContentData repositoryContentData = new RepositoryContentData();
         private RepositoryLogData repositoryLogData;
         private UploadTransactionData uploadTransactionData;
+        private ExecutorService compressExecutor;
 
         /**
          * 私有方法
@@ -148,6 +160,19 @@ public class InterfaceController extends BaseController {
 
         private void serviceCleanup() {
             uploadTransactionData = null;
+            if (compressExecutor != null) {
+                compressExecutor.shutdownNow();
+                try {
+                    if (!compressExecutor.awaitTermination(3, TimeUnit.SECONDS)) {
+                        AlertUtil.warn("后台进程未杀死 [超时]");
+                    }
+                } catch (InterruptedException e) {
+                    AlertUtil.warn("后台进程未杀死 [中断]");
+                    e.printStackTrace();
+                } finally {
+                    compressExecutor = null;
+                }
+            }
             mainApp.hideProgress();
             webView.setDisable(false);
             getWindow().call("switchRepoNavOps", "repo-nav-ops-refresh", true);
@@ -994,6 +1019,121 @@ public class InterfaceController extends BaseController {
                             }
                             dialogPane.setContent(detailPane);
                             alert.showAndWait();
+                        }
+                    };
+                }
+            }, errorMsg));
+        }
+
+        /**
+         * 公共方法 - 主页 - 仓库管理 - 压缩
+         */
+        public void repoAdminCompress() throws Exception {
+            // check & confirm
+            if (!RepositoryConfig.PROTOCOL_FILE.equals(repositoryConfig.getProtocol())) {
+                AlertUtil.warn("仅支持压缩本地仓库");
+                return;
+            }
+            if (repository.getLatestRevision() <= 1
+                    && !confirm("仓库已是最小状态，压缩已不能进一步减小占用空间，是否继续？")) {
+                return;
+            }
+            File repoRootFile = new File(repositoryConfig.getPath());
+            long oldSize = FileUtil.getUsedSize(repoRootFile);
+            long usableSize = repoRootFile.getUsableSpace();
+            if (oldSize > usableSize) {
+                AlertUtil.warn("可用存储空间不足");
+                return;
+            }
+            if (!confirm("当前仓库大小：" + FileUtil.getSizeString(oldSize)
+                    + "\n可用存储空间：" + FileUtil.getSizeString(usableSize)
+                    + "\n压缩过程需要仓库同等大小的额外存储空间，且压缩完成后，所有修改历史将丢失，是否继续？")) {
+                return;
+            }
+
+            // do preparation
+            File newRepoRootFile = Paths.get(repoRootFile.getParent(),
+                    repoRootFile.getName() + ("." + MainApp.APP_NAME + "compressing").toLowerCase()).toFile();
+            if (newRepoRootFile.exists()) {
+                if (!confirm("新路径" + newRepoRootFile + "已存在，是否覆盖？")) {
+                    return;
+                }
+                if (newRepoRootFile.isDirectory()) {
+                    Files.walk(newRepoRootFile.toPath())
+                            .sorted(Comparator.reverseOrder())
+                            .map(Path::toFile)
+                            .forEach(File::delete);
+                } else {
+                    newRepoRootFile.delete();
+                }
+            }
+
+            String errorMsg = "压缩失败";
+            String successTextTpl = "压缩成功" +
+                    "\n压缩前大小：" + FileUtil.getSizeString(oldSize)
+                    + "\n压缩后大小：%s";
+            String compressProgressText = "正在压缩";
+            startExclusiveService(buildNonInteractiveService(new Service<Void>() {
+                @Override
+                protected Task<Void> createTask() {
+                    return new Task<Void>() {
+                        @Override
+                        protected Void call() throws Exception {
+                            try {
+                                // create new repository
+                                SVNRepositoryFactory.createLocalRepository(newRepoRootFile, true, false);
+                                RepositoryConfig newRepositoryConfig = RepositoryConfig.newFileRepositoryConfig(newRepoRootFile.getPath(), null, null);
+                                SVNRepository newRepository = newRepositoryConfig.getRepository();
+
+                                // do compression
+                                Platform.runLater(() -> {
+                                    mainApp.showProgress(-1, compressProgressText);
+                                    mainApp.setOnProgressCloseRequest(event -> cancelExclusiveService(event, null));
+                                });
+                                try (PipedOutputStream outputStream = new PipedOutputStream();
+                                     PipedInputStream inputStream = new PipedInputStream(outputStream)) {
+                                    (compressExecutor = Executors.newSingleThreadExecutor()).submit(() -> {
+                                        try {
+                                            SvnOperationFactory svnOperationFactory = new SvnOperationFactory();
+                                            svnOperationFactory.setAuthenticationManager(repository.getAuthenticationManager());
+                                            SvnRepositoryDump dump = svnOperationFactory.createRepositoryDump();
+                                            dump.setRepositoryRoot(repoRootFile);
+                                            dump.setStartRevision(SVNRevision.HEAD);
+                                            dump.setOut(outputStream);
+                                            dump.run();
+                                            outputStream.close();
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                        }
+                                    });
+                                    SvnOperationFactory svnOperationFactory = new SvnOperationFactory();
+                                    svnOperationFactory.setAuthenticationManager(newRepository.getAuthenticationManager());
+                                    SvnRepositoryLoad load = svnOperationFactory.createRepositoryLoad();
+                                    load.setRepositoryRoot(newRepoRootFile);
+                                    load.setDumpStream(inputStream);
+                                    load.run();
+                                }
+
+                                // replace repository & config
+                                RepositoryConfig.remove(repositoryConfig.getRepositoryUUID());
+                                Files.walk(Paths.get(repositoryConfig.getPath()))
+                                        .sorted(Comparator.reverseOrder())
+                                        .map(Path::toFile)
+                                        .forEach(File::delete);
+                                newRepoRootFile.renameTo(repoRootFile);
+                                repositoryConfig = RepositoryConfig.newFileRepositoryConfig(repositoryConfig.getPath(), null, null);
+                                repository = repositoryConfig.getRepository();
+                                repositoryConfig.save();
+
+                                // success
+                                Platform.runLater(() -> AlertUtil.info(
+                                        String.format(successTextTpl, FileUtil.getSizeString(FileUtil.getUsedSize(repoRootFile)))));
+                            } catch (Exception e) {
+                                Platform.runLater(() -> AlertUtil.error(errorMsg, e));
+                            } finally {
+                                Platform.runLater(JavaApi.this::serviceCleanup);
+                            }
+                            return null;
                         }
                     };
                 }
