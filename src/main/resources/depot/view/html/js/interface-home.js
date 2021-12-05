@@ -456,6 +456,15 @@ $(function () {
     });
 });
 
+/*仓库管理*/
+$(function () {
+    $("#repo-ops-admin-verify").click(function () {
+        tryRun(function () {
+            javaApi.repoAdminVerify();
+        });
+    });
+});
+
 /*导航栏*/
 $(function () {
     repoNav.delegate("#repo-nav-ops-previous:not(.repo-nav-ops-disabled)", "click", function () {

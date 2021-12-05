@@ -40,6 +40,8 @@ import org.tmatesoft.svn.core.io.diff.SVNDeltaGenerator;
 import org.tmatesoft.svn.core.io.diff.SVNDiffWindow;
 import org.tmatesoft.svn.core.replicator.ISVNReplicationHandler;
 import org.tmatesoft.svn.core.replicator.SVNRepositoryReplicator;
+import org.tmatesoft.svn.core.wc2.SvnOperationFactory;
+import org.tmatesoft.svn.core.wc2.admin.SvnRepositoryVerify;
 import org.tmatesoft.svn.util.SVNLogType;
 
 import java.io.File;
@@ -991,6 +993,60 @@ public class InterfaceController extends BaseController {
                             }
                             dialogPane.setContent(detailPane);
                             alert.showAndWait();
+                        }
+                    };
+                }
+            }, errorMsg));
+        }
+
+        /**
+         * 公共方法 - 主页 - 仓库管理 - 校验
+         */
+        public void repoAdminVerify() {
+            String errorMsg = "校验失败";
+            String successText = "校验成功";
+            String verifyProgressText = "正在校验";
+            String progressTextTpl = verifyProgressText + "：%d / %d";
+            startExclusiveService(buildNonInteractiveService(new Service<Void>() {
+                @Override
+                protected Task<Void> createTask() {
+                    return new Task<Void>() {
+                        private long latestRevision;
+                        private long currentRevision;
+
+                        @Override
+                        protected Void call() throws Exception {
+                            try {
+                                RepositoryConfig config = RepositoryConfig.load(repository.getRepositoryUUID(true));
+                                if (!RepositoryConfig.PROTOCOL_FILE.equals(config.getProtocol())) {
+                                    throw new Exception("仅支持校验本地仓库");
+                                }
+                                latestRevision = repository.getLatestRevision();
+                                Platform.runLater(() -> {
+                                    mainApp.showProgress(-1, verifyProgressText);
+                                    mainApp.setOnProgressCloseRequest(event -> cancelExclusiveService(event, null));
+                                });
+                                SvnOperationFactory svnOperationFactory = new SvnOperationFactory();
+                                svnOperationFactory.setAuthenticationManager(repository.getAuthenticationManager());
+                                SvnRepositoryVerify verify = svnOperationFactory.createRepositoryVerify();
+                                verify.setRepositoryRoot(new File(config.getPath()));
+                                verify.setReceiver((target, svnAdminEvent) -> updateProgress(svnAdminEvent.getRevision()));
+                                verify.run();
+                                Platform.runLater(() -> AlertUtil.info(successText));
+                            } catch (Exception e) {
+                                Platform.runLater(() -> AlertUtil.error(
+                                        Math.min(currentRevision + 1, latestRevision) + "：" + errorMsg, e));
+                            } finally {
+                                Platform.runLater(JavaApi.this::serviceCleanup);
+                            }
+                            return null;
+                        }
+
+                        private void updateProgress(long revision) {
+                            currentRevision = revision;
+                            Platform.runLater(() -> mainApp.setProgress(
+                                    (currentRevision + 1.0) / (latestRevision + 1.0),
+                                    String.format(progressTextTpl, currentRevision, latestRevision)));
                         }
                     };
                 }

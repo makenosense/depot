@@ -107,6 +107,10 @@ body {
     padding: 5px 10px;
 }
 
+#repo-ops {
+    width: 100%;
+}
+
 #repo-ops button, #log-ops button {
     color: inherit;
     background-color: rgba(255, 255, 255, 0);
@@ -129,6 +133,10 @@ body {
 
 #repo-ops-on-select {
     display: none;
+}
+
+#repo-ops-admin {
+    float: right;
 }
 
 /*仓库导航*/
