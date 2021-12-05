@@ -347,7 +347,7 @@ public class InterfaceController extends BaseController {
                                         if (newLogEntry.getRevision() != repositoryLogData.getYoungestRevision() + 1) {
                                             throw new Exception("版本号不连续");
                                         }
-                                        repositoryLogData.appendLogEntry(newLogEntry);
+                                        repositoryLogData.pushLogEntry(newLogEntry);
                                         repositoryLogData.setLastChangeTime(System.currentTimeMillis());
                                     }
                                     repositoryLogData.save();

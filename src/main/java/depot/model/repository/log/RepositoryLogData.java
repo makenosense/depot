@@ -230,9 +230,9 @@ public class RepositoryLogData extends BaseModel implements Serializable {
         this.logEntries = logEntries;
     }
 
-    public void appendLogEntry(SVNLogEntry logEntry) {
+    public void pushLogEntry(SVNLogEntry logEntry) {
         logTreeNodes = null;
-        logEntries.add(logEntry);
+        logEntries.push(logEntry);
     }
 
     public Long getLastChangeTime() {
