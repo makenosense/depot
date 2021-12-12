@@ -1073,6 +1073,7 @@ public class InterfaceController extends BaseController {
                     "\n压缩前大小：" + FileUtil.getSizeString(oldSize)
                     + "\n压缩后大小：%s";
             String compressProgressText = "正在压缩";
+            String cancelConfirmMsg = "确定取消压缩吗？";
             startExclusiveService(buildNonInteractiveService(new Service<Void>() {
                 @Override
                 protected Task<Void> createTask() {
@@ -1088,7 +1089,7 @@ public class InterfaceController extends BaseController {
                                 // do compression
                                 Platform.runLater(() -> {
                                     mainApp.showProgress(-1, compressProgressText);
-                                    mainApp.setOnProgressCloseRequest(event -> cancelExclusiveService(event, null));
+                                    mainApp.setOnProgressCloseRequest(event -> cancelExclusiveService(event, cancelConfirmMsg));
                                 });
                                 try (PipedOutputStream outputStream = new PipedOutputStream();
                                      PipedInputStream inputStream = new PipedInputStream(outputStream)) {
@@ -1148,6 +1149,7 @@ public class InterfaceController extends BaseController {
             String successText = "校验成功";
             String verifyProgressText = "正在校验";
             String progressTextTpl = verifyProgressText + "：%d / %d";
+            String cancelConfirmMsg = "确定取消校验吗？";
 
             if (!RepositoryConfig.PROTOCOL_FILE.equals(repositoryConfig.getProtocol())) {
                 AlertUtil.warn("仅支持校验本地仓库");
@@ -1167,7 +1169,7 @@ public class InterfaceController extends BaseController {
                                 latestRevision = repository.getLatestRevision();
                                 Platform.runLater(() -> {
                                     mainApp.showProgress(-1, verifyProgressText);
-                                    mainApp.setOnProgressCloseRequest(event -> cancelExclusiveService(event, null));
+                                    mainApp.setOnProgressCloseRequest(event -> cancelExclusiveService(event, cancelConfirmMsg));
                                 });
                                 SvnOperationFactory svnOperationFactory = new SvnOperationFactory();
                                 svnOperationFactory.setAuthenticationManager(repository.getAuthenticationManager());
@@ -1246,6 +1248,7 @@ public class InterfaceController extends BaseController {
                 String syncProgressText = "正在同步";
                 String progressTextTpl = syncProgressText + "（%d / %d）：%d";
                 String syncCompleteText = "同步完成";
+                String cancelConfirmMsg = "确定取消同步吗？";
 
                 mainApp.showProgress(-1, "连接源仓库");
                 SVNRepository syncSource = RepositoryConfig.load(sourceUUID).getRepository();
@@ -1296,7 +1299,10 @@ public class InterfaceController extends BaseController {
                                             // Do nothing
                                         }
                                     });
-                                    Platform.runLater(() -> mainApp.showProgress(-1, syncProgressText));
+                                    Platform.runLater(() -> {
+                                        mainApp.showProgress(-1, syncProgressText);
+                                        mainApp.setOnProgressCloseRequest(event -> cancelExclusiveService(event, cancelConfirmMsg));
+                                    });
                                     replicator.replicateRepository(syncSource, syncTarget, true);
                                     Platform.runLater(() -> AlertUtil.info(syncCompleteText));
                                 } catch (Exception e) {
