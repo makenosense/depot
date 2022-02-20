@@ -355,7 +355,7 @@ $(function () {
                 if (paths.length === 1) {
                     confirmMsg = "确定要删除“" + paths[0] + "”吗？";
                 }
-                if (javaApi.confirm(confirmMsg)) {
+                if (javaApi.yesOrNo(confirmMsg, "删除", "取消")) {
                     deleteEntry(paths);
                 }
             }

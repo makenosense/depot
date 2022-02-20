@@ -85,7 +85,8 @@ public class WelcomeController extends BaseController {
                 File repositoryDir = new File(repositoryConfig.getPath());
                 if (!repositoryDir.isDirectory()
                         || Optional.ofNullable(repositoryDir.list()).orElse(new String[0]).length <= 0) {
-                    if (!confirm("仓库文件夹“" + repositoryDir.getAbsolutePath() + "”不存在，是否新建？")) {
+                    if (!yesOrNo("仓库文件夹“" + repositoryDir.getAbsolutePath() + "”不存在，是否新建？"
+                            , "新建", "取消")) {
                         throw new Exception("仓库文件夹不存在");
                     }
                     SVNRepositoryFactory.createLocalRepository(repositoryDir, true, false);
@@ -207,17 +208,25 @@ public class WelcomeController extends BaseController {
 
         public void removeRepository(String uuid) {
             try {
-                mainApp.showProgress(-1, "移除仓库");
-                RepositoryConfig repositoryConfig = RepositoryConfig.remove(uuid);
-                if (repositoryConfig != null
-                        && RepositoryConfig.PROTOCOL_FILE.equals(repositoryConfig.getProtocol())) {
-                    File repositoryDir = new File(repositoryConfig.getPath());
-                    if (repositoryDir.isDirectory()
-                            && confirm("是否同时删除本地仓库文件夹？")) {
-                        Files.walk(repositoryDir.toPath())
-                                .sorted(Comparator.reverseOrder())
-                                .map(Path::toFile)
-                                .forEach(File::delete);
+                RepositoryConfig repositoryConfig = RepositoryConfig.load(uuid);
+                if (yesOrNo("仓库名：" + repositoryConfig.getTitle()
+                        + "\n仓库地址：" + repositoryConfig.getUrl()
+                        + "\n确认删除？", "删除", "取消")) {
+                    mainApp.showProgress(-1, "移除仓库");
+                    repositoryConfig = RepositoryConfig.remove(uuid);
+                    mainApp.hideProgress();
+                    if (repositoryConfig != null
+                            && RepositoryConfig.PROTOCOL_FILE.equals(repositoryConfig.getProtocol())) {
+                        File repositoryDir = new File(repositoryConfig.getPath());
+                        if (repositoryDir.isDirectory()
+                                && yesOrNo("是否同时删除本地仓库文件夹？", "删除", "取消")) {
+                            mainApp.showProgress(-1, "删除本地仓库文件夹");
+                            Files.walk(repositoryDir.toPath())
+                                    .sorted(Comparator.reverseOrder())
+                                    .map(Path::toFile)
+                                    .forEach(File::delete);
+                            mainApp.hideProgress();
+                        }
                     }
                 }
             } catch (Exception e) {

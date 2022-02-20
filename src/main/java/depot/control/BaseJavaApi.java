@@ -49,4 +49,8 @@ public abstract class BaseJavaApi {
     public boolean confirm(String msg) {
         return AlertUtil.confirm(msg);
     }
+
+    public boolean yesOrNo(String msg, String yesText, String noText) {
+        return AlertUtil.yesOrNo(AlertUtil.TITLE_YES_OR_NO, null, msg, yesText, noText);
+    }
 }

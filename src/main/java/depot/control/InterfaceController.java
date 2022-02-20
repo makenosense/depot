@@ -1035,7 +1035,8 @@ public class InterfaceController extends BaseController {
                 return;
             }
             if (repository.getLatestRevision() <= 1
-                    && !confirm("仓库已是最小状态，压缩已不能进一步减小占用空间，是否继续？")) {
+                    && !yesOrNo("仓库已是最小状态，压缩已不能进一步减小占用空间，是否继续？",
+                    "继续", "取消")) {
                 return;
             }
             File repoRootFile = new File(repositoryConfig.getPath());
@@ -1045,9 +1046,10 @@ public class InterfaceController extends BaseController {
                 AlertUtil.warn("可用存储空间不足");
                 return;
             }
-            if (!confirm("当前仓库大小：" + FileUtil.getSizeString(oldSize)
-                    + "\n可用存储空间：" + FileUtil.getSizeString(usableSize)
-                    + "\n压缩过程需要仓库同等大小的额外存储空间，且压缩完成后，所有修改历史将丢失，是否继续？")) {
+            if (!yesOrNo("当前仓库大小：" + FileUtil.getSizeString(oldSize)
+                            + "\n可用存储空间：" + FileUtil.getSizeString(usableSize)
+                            + "\n压缩过程需要仓库同等大小的额外存储空间，且压缩完成后，所有修改历史将丢失，是否继续？",
+                    "继续", "取消")) {
                 return;
             }
 
@@ -1055,7 +1057,8 @@ public class InterfaceController extends BaseController {
             File newRepoRootFile = Paths.get(repoRootFile.getParent(),
                     repoRootFile.getName() + ("." + MainApp.APP_NAME + "compressing").toLowerCase()).toFile();
             if (newRepoRootFile.exists()) {
-                if (!confirm("新路径" + newRepoRootFile + "已存在，是否覆盖？")) {
+                if (!yesOrNo("新路径" + newRepoRootFile + "已存在，是否覆盖？"
+                        , "覆盖", "取消")) {
                     return;
                 }
                 if (newRepoRootFile.isDirectory()) {

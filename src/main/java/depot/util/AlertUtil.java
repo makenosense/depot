@@ -1,6 +1,7 @@
 package depot.util;
 
 import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.GridPane;
@@ -11,13 +12,18 @@ import java.io.StringWriter;
 import java.util.Optional;
 
 public class AlertUtil {
+    public static final String TITLE_ERROR = "错误";
+    public static final String TITLE_WARN = "警告";
+    public static final String TITLE_INFO = "信息";
+    public static final String TITLE_CONFIRM = "确认";
+    public static final String TITLE_YES_OR_NO = "选择";
 
     public static void error(String contentText) {
         error(null, contentText);
     }
 
     public static void error(String headerText, String contentText) {
-        error("错误", headerText, contentText);
+        error(TITLE_ERROR, headerText, contentText);
     }
 
     public static void error(String title, String headerText, String contentText) {
@@ -33,7 +39,7 @@ public class AlertUtil {
     }
 
     public static void error(String headerText, String contentText, Exception e) {
-        error("错误", headerText, contentText, e);
+        error(TITLE_ERROR, headerText, contentText, e);
     }
 
     public static void error(String title, String headerText, String contentText, Exception e) {
@@ -70,7 +76,7 @@ public class AlertUtil {
     }
 
     public static void warn(String headerText, String contentText) {
-        warn("警告", headerText, contentText);
+        warn(TITLE_WARN, headerText, contentText);
     }
 
     public static void warn(String title, String headerText, String contentText) {
@@ -86,7 +92,7 @@ public class AlertUtil {
     }
 
     public static void info(String headerText, String contentText) {
-        info("信息", headerText, contentText);
+        info(TITLE_INFO, headerText, contentText);
     }
 
     public static void info(String title, String headerText, String contentText) {
@@ -102,7 +108,7 @@ public class AlertUtil {
     }
 
     public static boolean confirm(String headerText, String contentText) {
-        return confirm("确认", headerText, contentText);
+        return confirm(TITLE_CONFIRM, headerText, contentText);
     }
 
     public static boolean confirm(String title, String headerText, String contentText) {
@@ -112,5 +118,35 @@ public class AlertUtil {
         alert.setContentText(contentText);
         Optional<ButtonType> result = alert.showAndWait();
         return result.isPresent() && result.get() == ButtonType.OK;
+    }
+
+    public static boolean yesOrNo(String contentText) {
+        return yesOrNo(null, contentText);
+    }
+
+    public static boolean yesOrNo(String headerText, String contentText) {
+        return yesOrNo(TITLE_YES_OR_NO, headerText, contentText);
+    }
+
+    public static boolean yesOrNo(String title, String headerText, String contentText) {
+        return yesOrNo(title, headerText, contentText, null, null);
+    }
+
+    public static boolean yesOrNo(String title, String headerText, String contentText, String yesText, String noText) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(headerText);
+        alert.setContentText(contentText);
+        ButtonType yesButton = ButtonType.YES;
+        ButtonType noButton = ButtonType.NO;
+        if (StringUtil.notEmpty(yesText)) {
+            yesButton = new ButtonType(yesText, ButtonBar.ButtonData.YES);
+        }
+        if (StringUtil.notEmpty(noText)) {
+            noButton = new ButtonType(noText, ButtonBar.ButtonData.NO);
+        }
+        alert.getButtonTypes().setAll(noButton, yesButton);
+        Optional<ButtonType> result = alert.showAndWait();
+        return result.isPresent() && result.get() == yesButton;
     }
 }
