@@ -4,7 +4,6 @@ import depot.MainApp;
 import depot.model.repository.config.ComparableRepositoryConfig;
 import depot.model.repository.sync.CompareCancelledException;
 import depot.model.repository.sync.RepositoryCompareResult;
-import depot.util.AlertUtil;
 import javafx.application.Platform;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
@@ -82,7 +81,7 @@ public class RepositoryCompareController extends BaseController {
 
                 @Override
                 protected void onCreationFailed(Exception e) {
-                    AlertUtil.error(creationFailedMsg, e);
+                    error(creationFailedMsg, e);
                     serviceCleanup();
                 }
             };
@@ -121,11 +120,11 @@ public class RepositoryCompareController extends BaseController {
                                 } else {
                                     Platform.runLater(() -> {
                                         webView.getScene().getWindow().hide();
-                                        AlertUtil.info("源仓库与目标仓库完全相同");
+                                        info("源仓库与目标仓库完全相同");
                                     });
                                 }
                             } catch (Exception e) {
-                                Platform.runLater(() -> AlertUtil.error(errorMsg, e));
+                                Platform.runLater(() -> error(errorMsg, e));
                             } finally {
                                 Platform.runLater(JavaApi.this::serviceCleanup);
                             }

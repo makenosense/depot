@@ -14,7 +14,6 @@ import depot.model.transfer.download.DownloadTask;
 import depot.model.transfer.download.DownloadTransactionData;
 import depot.model.transfer.upload.UploadCancelledException;
 import depot.model.transfer.upload.UploadTransactionData;
-import depot.util.AlertUtil;
 import depot.util.FileUtil;
 import javafx.application.Platform;
 import javafx.concurrent.Service;
@@ -164,10 +163,10 @@ public class InterfaceController extends BaseController {
                 compressExecutor.shutdownNow();
                 try {
                     if (!compressExecutor.awaitTermination(3, TimeUnit.SECONDS)) {
-                        AlertUtil.warn("后台进程未杀死 [超时]");
+                        warn("后台进程未杀死 [超时]");
                     }
                 } catch (InterruptedException e) {
-                    AlertUtil.warn("后台进程未杀死 [中断]");
+                    warn("后台进程未杀死 [中断]");
                     e.printStackTrace();
                 } finally {
                     compressExecutor = null;
@@ -188,7 +187,7 @@ public class InterfaceController extends BaseController {
 
                 @Override
                 protected void onCreationFailed(Exception e) {
-                    AlertUtil.error(creationFailedMsg, e);
+                    error(creationFailedMsg, e);
                     serviceCleanup();
                 }
             };
@@ -247,7 +246,7 @@ public class InterfaceController extends BaseController {
                                 getWindow().call("sortEntryList");
                             });
                         } catch (Exception e) {
-                            Platform.runLater(() -> AlertUtil.error("仓库加载失败", e));
+                            Platform.runLater(() -> error("仓库加载失败", e));
                         } finally {
                             Platform.runLater(JavaApi.this::serviceCleanup);
                         }
@@ -273,7 +272,7 @@ public class InterfaceController extends BaseController {
             protected abstract void doEditing(ISVNEditor editor, Task<Void> task) throws Exception;
 
             protected void onEditingFailed(Exception e) {
-                Platform.runLater(() -> AlertUtil.error(errorMessage, e));
+                Platform.runLater(() -> error(errorMessage, e));
             }
 
             protected void onEditingSuccess() {
@@ -303,7 +302,7 @@ public class InterfaceController extends BaseController {
                                 }
                             } catch (Exception ignored) {
                             } finally {
-                                Platform.runLater(() -> AlertUtil.info(e.getMessage()));
+                                Platform.runLater(() -> info(e.getMessage()));
                             }
                         } catch (Exception e) {
                             try {
@@ -386,7 +385,7 @@ public class InterfaceController extends BaseController {
                                 });
                             }
                         } catch (Exception e) {
-                            Platform.runLater(() -> AlertUtil.error("仓库历史记录加载失败", e));
+                            Platform.runLater(() -> error("仓库历史记录加载失败", e));
                         } finally {
                             Platform.runLater(JavaApi.this::serviceCleanup);
                         }
@@ -770,7 +769,7 @@ public class InterfaceController extends BaseController {
                                             1, downloadCompleteProgressText));
                                 }
                             } catch (Exception e) {
-                                Platform.runLater(() -> AlertUtil.error(errorMsg, e));
+                                Platform.runLater(() -> error(errorMsg, e));
                             } finally {
                                 Platform.runLater(JavaApi.this::serviceCleanup);
                             }
@@ -975,7 +974,7 @@ public class InterfaceController extends BaseController {
                                 }
                                 Platform.runLater(this::showEntryDetail);
                             } catch (Exception e) {
-                                Platform.runLater(() -> AlertUtil.error(errorMsg, e));
+                                Platform.runLater(() -> error(errorMsg, e));
                             } finally {
                                 Platform.runLater(JavaApi.this::serviceCleanup);
                             }
@@ -984,7 +983,7 @@ public class InterfaceController extends BaseController {
 
                         private void showEntryDetail() {
                             if (dirs.isEmpty() && files.isEmpty()) {
-                                AlertUtil.warn(errorMsg);
+                                warn(errorMsg);
                                 return;
                             }
                             Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -1031,7 +1030,7 @@ public class InterfaceController extends BaseController {
         public void repoAdminCompress() throws Exception {
             // check & confirm
             if (!RepositoryConfig.PROTOCOL_FILE.equals(repositoryConfig.getProtocol())) {
-                AlertUtil.warn("仅支持压缩本地仓库");
+                warn("仅支持压缩本地仓库");
                 return;
             }
             if (repository.getLatestRevision() <= 1
@@ -1043,7 +1042,7 @@ public class InterfaceController extends BaseController {
             long oldSize = FileUtil.getUsedSize(repoRootFile);
             long usableSize = repoRootFile.getUsableSpace();
             if (oldSize > usableSize) {
-                AlertUtil.warn("可用存储空间不足");
+                warn("可用存储空间不足");
                 return;
             }
             if (!yesOrNo("当前仓库大小：" + FileUtil.getSizeString(oldSize)
@@ -1130,10 +1129,10 @@ public class InterfaceController extends BaseController {
                                 repositoryConfig.save();
 
                                 // success
-                                Platform.runLater(() -> AlertUtil.info(
+                                Platform.runLater(() -> info(
                                         String.format(successTextTpl, FileUtil.getSizeString(FileUtil.getUsedSize(repoRootFile)))));
                             } catch (Exception e) {
-                                Platform.runLater(() -> AlertUtil.error(errorMsg, e));
+                                Platform.runLater(() -> error(errorMsg, e));
                             } finally {
                                 Platform.runLater(JavaApi.this::serviceCleanup);
                             }
@@ -1155,7 +1154,7 @@ public class InterfaceController extends BaseController {
             String cancelConfirmMsg = "确定取消校验吗？";
 
             if (!RepositoryConfig.PROTOCOL_FILE.equals(repositoryConfig.getProtocol())) {
-                AlertUtil.warn("仅支持校验本地仓库");
+                warn("仅支持校验本地仓库");
                 return;
             }
 
@@ -1180,9 +1179,9 @@ public class InterfaceController extends BaseController {
                                 verify.setRepositoryRoot(new File(repositoryConfig.getPath()));
                                 verify.setReceiver((target, svnAdminEvent) -> updateProgress(svnAdminEvent.getRevision()));
                                 verify.run();
-                                Platform.runLater(() -> AlertUtil.info(successText));
+                                Platform.runLater(() -> info(successText));
                             } catch (Exception e) {
-                                Platform.runLater(() -> AlertUtil.error(
+                                Platform.runLater(() -> error(
                                         Math.min(currentRevision + 1, latestRevision) + "：" + errorMsg, e));
                             } finally {
                                 Platform.runLater(JavaApi.this::serviceCleanup);
@@ -1307,9 +1306,9 @@ public class InterfaceController extends BaseController {
                                         mainApp.setOnProgressCloseRequest(event -> cancelExclusiveService(event, cancelConfirmMsg));
                                     });
                                     replicator.replicateRepository(syncSource, syncTarget, true);
-                                    Platform.runLater(() -> AlertUtil.info(syncCompleteText));
+                                    Platform.runLater(() -> info(syncCompleteText));
                                 } catch (Exception e) {
-                                    Platform.runLater(() -> AlertUtil.error(errorMsg, e));
+                                    Platform.runLater(() -> error(errorMsg, e));
                                 } finally {
                                     Platform.runLater(JavaApi.this::serviceCleanup);
                                 }
@@ -1327,7 +1326,7 @@ public class InterfaceController extends BaseController {
                 }, errorMsg));
             } catch (Exception e) {
                 if (!(e instanceof SyncCancelledException)) {
-                    AlertUtil.error(errorMsg, e);
+                    error(errorMsg, e);
                 }
                 serviceCleanup();
             }
@@ -1360,7 +1359,7 @@ public class InterfaceController extends BaseController {
                 }
                 getWindow().call("loadAppSettings");
             } catch (Exception e) {
-                AlertUtil.error("设置保存失败", e);
+                error("设置保存失败", e);
             }
         }
 

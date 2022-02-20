@@ -2,7 +2,6 @@ package depot.control;
 
 import depot.MainApp;
 import depot.model.repository.config.RepositoryConfig;
-import depot.util.AlertUtil;
 import javafx.application.Platform;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
@@ -131,7 +130,7 @@ public class WelcomeController extends BaseController {
                             Platform.runLater(() -> mainApp.showInterface(repositoryConfig, repository));
                         } catch (Exception e) {
                             Platform.runLater(() -> {
-                                AlertUtil.error("出现错误", e);
+                                error("出现错误", e);
                                 mainApp.hideProgress();
                                 switchToRepositoryList();
                             });
@@ -174,7 +173,7 @@ public class WelcomeController extends BaseController {
 
                 @Override
                 protected void onCreationFailed(Exception e) {
-                    AlertUtil.error("仓库添加失败", e);
+                    error("仓库添加失败", e);
                     mainApp.hideProgress();
                     switchToRepositoryList();
                 }
@@ -199,7 +198,7 @@ public class WelcomeController extends BaseController {
 
                 @Override
                 protected void onCreationFailed(Exception e) {
-                    AlertUtil.error("仓库打开失败", e);
+                    error("仓库打开失败", e);
                     mainApp.hideProgress();
                     switchToRepositoryList();
                 }
@@ -230,7 +229,7 @@ public class WelcomeController extends BaseController {
                     }
                 }
             } catch (Exception e) {
-                AlertUtil.error("仓库移除失败", e);
+                error("仓库移除失败", e);
             } finally {
                 mainApp.hideProgress();
                 switchToRepositoryList();

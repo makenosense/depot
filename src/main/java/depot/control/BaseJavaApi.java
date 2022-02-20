@@ -13,7 +13,7 @@ public abstract class BaseJavaApi {
         protected abstract Service createService() throws Exception;
 
         protected void onCreationFailed(Exception e) {
-            Platform.runLater(() -> AlertUtil.error("出现错误", e));
+            Platform.runLater(() -> error("出现错误", e));
         }
 
         public void start() {
@@ -36,6 +36,10 @@ public abstract class BaseJavaApi {
 
     public void error(String msg) {
         AlertUtil.error(msg);
+    }
+
+    public void error(String msg, Exception e) {
+        AlertUtil.error(msg, e);
     }
 
     public void warn(String msg) {
