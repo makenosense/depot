@@ -105,7 +105,7 @@ public class InterfaceController extends BaseController {
             if (db.hasFiles()) {
                 success = true;
                 JSObject target = (JSObject) getWindow().call("getDropTarget", (int) event.getX(), (int) event.getY());
-                String parentPathString = String.valueOf(target.getMember("pathString"));
+                String parentPathString = (String) target.getMember("pathString");
                 if (parentPathString != null) {
                     javaApi.uploadItems(db.getFiles(), path.resolve(parentPathString).getPathNode());
                 }
