@@ -71,10 +71,10 @@ public class RepositoryCompareController extends BaseController {
             webView.setDisable(false);
         }
 
-        private ExclusiveService buildNonInteractiveService(Service service, String creationFailedMsg) {
+        private ExclusiveService buildNonInteractiveService(Service<?> service, String creationFailedMsg) {
             return new ExclusiveService() {
                 @Override
-                protected Service createService() {
+                protected Service<?> createService() {
                     webView.setDisable(true);
                     return service;
                 }

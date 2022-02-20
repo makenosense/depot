@@ -6,11 +6,11 @@ import javafx.concurrent.Service;
 
 public abstract class BaseJavaApi {
 
-    protected Service service;
+    protected Service<?> service;
 
     protected abstract class ExclusiveService {
 
-        protected abstract Service createService() throws Exception;
+        protected abstract Service<?> createService() throws Exception;
 
         protected void onCreationFailed(Exception e) {
             Platform.runLater(() -> error("出现错误", e));
@@ -18,7 +18,7 @@ public abstract class BaseJavaApi {
 
         public void start() {
             try {
-                Service oldService = service;
+                Service<?> oldService = service;
                 service = createService();
                 service.start();
                 if (oldService != null && oldService.isRunning()) {

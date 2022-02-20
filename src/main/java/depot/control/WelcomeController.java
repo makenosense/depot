@@ -117,7 +117,7 @@ public class WelcomeController extends BaseController {
                     @Override
                     protected Void call() {
                         try {
-                            Platform.runLater(() -> mainApp.setProgress(saveBeforeOpen ? 1.0 / 3 : 1.0 / 2, "尝试连接仓库"));
+                            Platform.runLater(() -> mainApp.showProgress(saveBeforeOpen ? 1.0 / 3 : 1.0 / 2, "尝试连接仓库"));
                             SVNRepository repository = repositoryConfig.getRepository();
 
                             if (saveBeforeOpen) {
@@ -165,9 +165,10 @@ public class WelcomeController extends BaseController {
         public void addRepository(JSObject params) {
             startExclusiveService(new ExclusiveService() {
                 @Override
-                protected Service createService() throws Exception {
-                    mainApp.showProgress(0, "初始化仓库配置");
+                protected Service<?> createService() throws Exception {
+                    mainApp.showProgress(-1, "初始化仓库配置");
                     RepositoryConfig repositoryConfig = new RepositoryConfig(params);
+                    mainApp.hideProgress();
                     return new OpenRepositoryService(repositoryConfig, checkRepositoryConfig(repositoryConfig));
                 }
 
@@ -190,9 +191,10 @@ public class WelcomeController extends BaseController {
         public void openRepository(String uuid) {
             startExclusiveService(new ExclusiveService() {
                 @Override
-                protected Service createService() throws Exception {
-                    mainApp.showProgress(0, "加载仓库配置");
+                protected Service<?> createService() throws Exception {
+                    mainApp.showProgress(-1, "加载仓库配置");
                     RepositoryConfig repositoryConfig = RepositoryConfig.loadAndMoveFirst(uuid);
+                    mainApp.hideProgress();
                     return new OpenRepositoryService(repositoryConfig, checkRepositoryConfig(repositoryConfig));
                 }
 

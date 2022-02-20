@@ -177,10 +177,10 @@ public class InterfaceController extends BaseController {
             getWindow().call("switchRepoNavOps", "repo-nav-ops-refresh", true);
         }
 
-        private ExclusiveService buildNonInteractiveService(Service service, String creationFailedMsg) {
+        private ExclusiveService buildNonInteractiveService(Service<?> service, String creationFailedMsg) {
             return new ExclusiveService() {
                 @Override
-                protected Service createService() {
+                protected Service<?> createService() {
                     webView.setDisable(true);
                     return service;
                 }
