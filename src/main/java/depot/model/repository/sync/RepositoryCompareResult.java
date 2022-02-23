@@ -1,5 +1,6 @@
 package depot.model.repository.sync;
 
+import com.google.common.base.Preconditions;
 import depot.model.repository.config.ComparableRepositoryConfig;
 import depot.model.repository.path.RepositoryPathNode;
 
@@ -73,11 +74,11 @@ public class RepositoryCompareResult {
             RepositoryCompareTreeNode node = new RepositoryCompareTreeNode(
                     nodePath, nodeParent, nodeType, nodeName);
             if (nodeType.endsWith("_a") || nodeType.endsWith("_m")) {
-                assert sourceInfo != null;
+                Preconditions.checkNotNull(sourceInfo);
                 setSourceProperties(node, sourceInfo);
             }
             if (nodeType.endsWith("_d") || nodeType.endsWith("_m")) {
-                assert targetInfo != null;
+                Preconditions.checkNotNull(targetInfo);
                 setTargetProperties(node, targetInfo);
             }
             treeNodes.put(nodePath, node);

@@ -19,6 +19,10 @@ public class RepositoryPathNode {
         this(Paths.get("/"));
     }
 
+    public RepositoryPathNode(String pathString) {
+        this(Paths.get("/").resolve(pathString));
+    }
+
     public RepositoryPathNode(Path path) {
         this.path = path.normalize();
     }

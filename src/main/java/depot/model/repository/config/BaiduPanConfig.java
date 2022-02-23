@@ -411,8 +411,8 @@ public class BaiduPanConfig extends BaseModel implements ComparableRepositoryCon
         if (StringUtil.notEmpty(rootPath)) {
             RepositoryPathNode rootPathNode = new RepositoryPathNode(Paths.get(rootPath));
             for (BaiduPanDirEntry entry : listAll(rootPathNode, false)) {
-                RepositoryPathNode entryRelPathNode = new RepositoryPathNode()
-                        .resolve(rootPathNode.relativize(entry.getPathNode().getPath()).toString());
+                RepositoryPathNode entryRelPathNode = new RepositoryPathNode(
+                        rootPathNode.relativize(entry.getPathNode().getPath()).toString());
                 if (collectListener != null) {
                     collectListener.handle(entryRelPathNode);
                 }

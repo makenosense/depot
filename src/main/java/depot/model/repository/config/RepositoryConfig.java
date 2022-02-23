@@ -1,5 +1,6 @@
 package depot.model.repository.config;
 
+import com.google.common.base.Preconditions;
 import depot.model.base.BaseModel;
 import depot.model.repository.path.RepositoryDirEntry;
 import depot.model.repository.path.RepositoryPathNode;
@@ -263,7 +264,7 @@ public class RepositoryConfig extends BaseModel implements ComparableRepositoryC
                 collectListener.handle(currentPathNode);
             }
             if (entry.getKind() == SVNNodeKind.FILE) {
-                assert checksumMap.containsKey(currentPathNode);
+                Preconditions.checkArgument(checksumMap.containsKey(currentPathNode));
                 entryInfoMap.put(currentPathNode, RepositoryCompareEntry.EntryInfo.newFileEntryInfo(
                         entry.getDate(), entry.getSize(), checksumMap.get(currentPathNode)));
             } else if (entry.getKind() == SVNNodeKind.DIR) {

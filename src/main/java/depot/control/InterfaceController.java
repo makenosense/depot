@@ -1,5 +1,6 @@
 package depot.control;
 
+import com.google.common.base.Preconditions;
 import depot.MainApp;
 import depot.model.base.AppSettings;
 import depot.model.repository.config.BaiduPanConfig;
@@ -30,6 +31,7 @@ import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.WindowEvent;
 import netscape.javascript.JSObject;
+import org.apache.commons.collections.CollectionUtils;
 import org.tmatesoft.svn.core.*;
 import org.tmatesoft.svn.core.internal.wc.SVNErrorManager;
 import org.tmatesoft.svn.core.internal.wc.SVNFileUtil;
@@ -551,21 +553,33 @@ public class InterfaceController extends BaseController {
                 String fileUploadProgressText = "上传文件";
                 String fileUploadProgressTextTpl = "[%6s] [%s / %s] 总进度：%d / %d \t| 剩余时间：%s";
                 String fileUploadSubProgressTextTpl = "[%6s] [%s / %s] 正在上传：%s";
+                String fileChecksumCalProgressTextTpl = "[%6s] 总进度：%d / %d";
+                String fileChecksumCalSubProgressTextTpl = "[%6s] [%s / %s] 正在计算校验和：%s";
                 String uploadCompleteProgressText = "上传完成";
                 String cancelConfirmMsg = "确定取消上传吗？";
                 startExclusiveService(buildNonInteractiveService(new EditingWithRefreshingService("上传", errorMsg) {
                     @Override
                     protected void beforeEditing(Task<Void> task) throws Exception {
                         Platform.runLater(() -> {
-                            mainApp.showProgress(-1, uploadPreCheckProgressText);
+                            mainApp.showProgress(-1, uploadPreCheckProgressText, -1, uploadPreCheckProgressText);
                             mainApp.setOnProgressCloseRequest(event -> cancelExclusiveService(event, cancelConfirmMsg));
                         });
-                        uploadTransactionData = new UploadTransactionData(repository, dirs, files, uploadPathMap, task);
+                        uploadTransactionData = new UploadTransactionData()
+                                .setTask(task)
+                                .setRepository(repository)
+                                .setDirList(dirs)
+                                .setFileList(files)
+                                .setUploadPathMap(uploadPathMap)
+                                .setChecksumProgressHandler(this::updateChecksumProgress)
+                                .build();
+                        if (uploadTransactionData.isEmpty()) {
+                            throw new UploadCancelledException("待上传队列为空");
+                        }
                     }
 
                     @Override
                     protected void doEditing(ISVNEditor editor, Task<Void> task) throws Exception {
-                        if (uploadTransactionData.lengthOfDirs() > 0) {
+                        if (CollectionUtils.isNotEmpty(uploadTransactionData.getDirList())) {
                             /*准备上传文件夹*/
                             Platform.runLater(() -> {
                                 mainApp.showProgress(0, dirUploadProgressText);
@@ -574,19 +588,18 @@ public class InterfaceController extends BaseController {
                             });
 
                             /*上传文件夹*/
-                            for (File dir : uploadTransactionData.dirList()) {
-                                if (uploadTransactionData.getKind(dir) != SVNNodeKind.DIR) {
-                                    if (task.isCancelled()) {
-                                        throw new UploadCancelledException();
-                                    }
-                                    editor.addDir(uploadPathMap.get(dir), null, -1);
-                                    editor.closeDir();
+                            for (File dir : uploadTransactionData.getDirList()) {
+                                Preconditions.checkArgument(uploadTransactionData.getKind(dir) != SVNNodeKind.DIR);
+                                if (task.isCancelled()) {
+                                    throw new UploadCancelledException();
                                 }
+                                editor.addDir(uploadPathMap.get(dir), null, -1);
+                                editor.closeDir();
                                 updateProgress(dir);
                             }
                         }
 
-                        if (uploadTransactionData.lengthOfFiles() > 0) {
+                        if (CollectionUtils.isNotEmpty(uploadTransactionData.getFileList())) {
                             /*准备上传文件*/
                             Platform.runLater(() -> {
                                 mainApp.showProgress(0, fileUploadProgressText, 0, fileUploadProgressText);
@@ -595,7 +608,10 @@ public class InterfaceController extends BaseController {
                             });
 
                             /*上传文件*/
-                            for (File file : uploadTransactionData.fileList()) {
+                            for (File file : uploadTransactionData.getFileList()) {
+                                /*文件大小校验*/
+                                Preconditions.checkArgument(file.length() == uploadTransactionData.getSize(file));
+
                                 long sent = 0;
                                 updateProgress(file, sent);
 
@@ -607,7 +623,7 @@ public class InterfaceController extends BaseController {
                                 }
                                 editor.applyTextDelta(uploadFilePath, null);
                                 SVNDeltaGenerator deltaGenerator = new SVNDeltaGenerator();
-                                String checkSum;
+                                String checksum;
                                 try (FileInputStream fileInputStream = new FileInputStream(file)) {
                                     byte[] targetBuffer = new byte[64 * 1024];
                                     MessageDigest digest = null;
@@ -628,6 +644,8 @@ public class InterfaceController extends BaseController {
                                             if (!windowSent) {
                                                 editor.textDeltaChunk(uploadFilePath, SVNDiffWindow.EMPTY);
                                             }
+                                            /*传输数据量校验*/
+                                            Preconditions.checkArgument(sent == uploadTransactionData.getSize(file));
                                             break;
                                         }
                                         if (digest != null) {
@@ -639,21 +657,42 @@ public class InterfaceController extends BaseController {
                                         updateProgress(file, sent);
                                     }
                                     editor.textDeltaEnd(uploadFilePath);
-                                    checkSum = SVNFileUtil.toHexDigest(digest);
+                                    checksum = SVNFileUtil.toHexDigest(digest);
                                 }
-                                editor.closeFile(uploadFilePath, checkSum);
+                                editor.closeFile(uploadFilePath, checksum);
 
                                 updateProgress(file, sent);
                             }
                         }
 
                         /*上传完成*/
-                        Platform.runLater(() -> mainApp.setProgress(1, uploadCompleteProgressText, 1, uploadCompleteProgressText));
+                        Platform.runLater(() -> {
+                            if (CollectionUtils.isNotEmpty(uploadTransactionData.getFileList())) {
+                                mainApp.setProgress(1, uploadCompleteProgressText, 1, uploadCompleteProgressText);
+                            } else {
+                                mainApp.setProgress(1, uploadCompleteProgressText);
+                            }
+                        });
+                    }
+
+                    private void updateChecksumProgress(long processedSize, long totalSize, int itemIdx, int itemCount, String itemName) {
+                        double progressValue = 1. * (itemIdx + 1) / itemCount;
+                        String progressPercent = String.format("%.1f%%", 100 * progressValue);
+
+                        double subProgressValue = 1. * processedSize / totalSize;
+                        String subProgressPercent = String.format("%.1f%%", 100 * subProgressValue);
+                        String processedSizeString = FileUtil.getSizeString(processedSize, 0);
+                        String totalSizeString = FileUtil.getSizeString(totalSize, 0);
+                        Platform.runLater(() -> mainApp.setProgress(
+                                progressValue, String.format(fileChecksumCalProgressTextTpl,
+                                        progressPercent, (itemIdx + 1), itemCount),
+                                subProgressValue, String.format(fileChecksumCalSubProgressTextTpl,
+                                        subProgressPercent, processedSizeString, totalSizeString, itemName)));
                     }
 
                     private void updateProgress(File dir) {
-                        int dirIdx = uploadTransactionData.indexOfDir(dir);
-                        int lengthOfDirs = uploadTransactionData.lengthOfDirs();
+                        int dirIdx = uploadTransactionData.getDirList().indexOf(dir);
+                        int lengthOfDirs = uploadTransactionData.getDirList().size();
                         double progressValue = 1. * (dirIdx + 1) / lengthOfDirs;
                         String dirName = dir.getName();
                         Platform.runLater(() -> mainApp.setProgress(
@@ -668,8 +707,8 @@ public class InterfaceController extends BaseController {
                         String progressPercent = String.format("%.1f%%", 100 * progressValue);
                         String totalSentString = FileUtil.getSizeString(totalSent, 0);
                         String totalSizeString = FileUtil.getSizeString(totalSize, 0);
-                        int fileIdx = uploadTransactionData.indexOfFile(file);
-                        int lengthOfFiles = uploadTransactionData.lengthOfFiles();
+                        int fileIdx = uploadTransactionData.getFileList().indexOf(file);
+                        int lengthOfFiles = uploadTransactionData.getFileList().size();
                         String remainingTimeString = uploadTransactionData.getRemainingTimeString(totalSent);
 
                         long fileSize = Math.max(uploadTransactionData.getSize(file), 1);

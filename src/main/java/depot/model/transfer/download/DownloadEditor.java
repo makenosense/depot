@@ -28,7 +28,7 @@ public class DownloadEditor extends BaseEditor {
     private final RepositoryPathNode parentPathNode;
     private final File downloadParent;
     private final LinkedList<File> newEntries = new LinkedList<>();
-    private String lastCheckSum;
+    private String lastChecksum;
     private long lastReceivedTotal;
     private ReceiveListener receiveListener;
 
@@ -103,7 +103,7 @@ public class DownloadEditor extends BaseEditor {
 
     @Override
     public void closeFile(String path, String textChecksum) throws SVNException {
-        if (!Objects.equals(lastCheckSum, textChecksum)) {
+        if (!Objects.equals(lastChecksum, textChecksum)) {
             throwSVNException("下载文件校验失败：" + path);
         }
         File newTempFile = getTempDownloadTarget(path);
@@ -163,7 +163,7 @@ public class DownloadEditor extends BaseEditor {
 
     @Override
     public void textDeltaEnd(String path) {
-        lastCheckSum = deltaProcessor.textDeltaEnd();
+        lastChecksum = deltaProcessor.textDeltaEnd();
     }
 
     public interface ReceiveListener {

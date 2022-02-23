@@ -187,10 +187,27 @@ public class RepositoryDirEntry {
     private static final Map<RepositoryRevision, Map<RepositoryPathNode, String>> CHECKSUM_MAP_CACHE = new HashMap<>();
     private static final Map<RepositoryRevision, Map<RepositoryPathNode, List<SVNDirEntry>>> TRAVERSE_CACHE = new HashMap<>();
 
+    public static SVNDirEntry getEntry(SVNRepository repository, RepositoryPathNode pathNode) {
+        return getEntry(repository, pathNode.toString());
+    }
+
+    public static SVNDirEntry getEntry(SVNRepository repository, String pathString) {
+        try {
+            return repository.info(pathString, -1);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public static String getChecksum(SVNRepository repository, RepositoryPathNode pathNode) {
+        return getChecksum(repository, pathNode.toString());
+    }
+
+    public static String getChecksum(SVNRepository repository, String pathString) {
         try {
             SVNProperties properties = new SVNProperties();
-            repository.getFile(pathNode.toString(), -1, properties, null);
+            repository.getFile(pathString, -1, properties, null);
             return properties.getStringValue(SVNProperty.CHECKSUM);
         } catch (Exception e) {
             e.printStackTrace();
@@ -212,7 +229,7 @@ public class RepositoryDirEntry {
         }, new BaseEditor() {
             @Override
             public void closeFile(String path, String textChecksum) {
-                checksumMap.put(new RepositoryPathNode().resolve(path), textChecksum);
+                checksumMap.put(new RepositoryPathNode(path), textChecksum);
             }
         });
 
@@ -250,8 +267,8 @@ public class RepositoryDirEntry {
         }
 
         entryList.forEach(entry -> {
-            RepositoryPathNode currentPathNode = new RepositoryPathNode()
-                    .resolve(entry.getURL().toDecodedString()
+            RepositoryPathNode currentPathNode = new RepositoryPathNode(
+                    entry.getURL().toDecodedString()
                             .substring(entry.getRepositoryRoot().toDecodedString().length()));
             entry.setName(currentPathNode.getName());
             try {
