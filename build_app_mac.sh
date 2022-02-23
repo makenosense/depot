@@ -9,7 +9,7 @@
 # PROJECT_VERSION: version used in pom.xml, e.g. 1.0-SNAPSHOT
 # APP_VERSION: the application version, e.g. 1.0.0, shown in "about" dialog
 
-JAVA_HOME=~/Library/Java/JavaVirtualMachines/openjdk-17.0.1/Contents/Home
+JAVA_HOME=~/Library/Java/JavaVirtualMachines/openjdk-17.0.2/Contents/Home
 JAVA_VERSION=17
 MAIN_JAR="$APP_NAME-$PROJECT_VERSION.jar"
 
