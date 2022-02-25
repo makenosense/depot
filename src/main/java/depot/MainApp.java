@@ -32,7 +32,7 @@ import java.util.Objects;
 
 public class MainApp extends Application {
     public static final String APP_NAME = "Depot";
-    public static final String VERSION = "1.1.1";
+    public static final String VERSION = "1.2.0";
     public static URL LOGO_URL = Objects.requireNonNull(MainApp.class.getResource("view/html/img/logo.png"));
 
     private Stage primaryStage;
