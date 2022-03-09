@@ -527,7 +527,7 @@ public class InterfaceController extends BaseController {
 
         private void collectUploadItems(File item, RepositoryPathNode itemPathNode,
                                         List<File> dirs, List<File> files, Map<File, String> uploadPathMap) {
-            if (item.exists()) {
+            if (item.exists() && !FileUtil.shouldIgnore(item)) {
                 if (item.isFile()) {
                     files.add(item);
                     uploadPathMap.put(item, itemPathNode.toString());
