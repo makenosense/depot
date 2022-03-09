@@ -8,7 +8,6 @@ import depot.model.repository.path.RepositoryPathNode;
 import depot.model.repository.sync.RepositoryCompareEntry;
 import depot.model.repository.sync.RepositoryCompareResult;
 import depot.util.HttpUtil;
-import depot.util.StringUtil;
 import javafx.concurrent.Worker;
 import javafx.scene.Node;
 import javafx.scene.control.ButtonType;
@@ -16,6 +15,7 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hc.core5.net.URIBuilder;
 import org.apache.hc.core5.net.URLEncodedUtils;
 import org.json.JSONObject;
@@ -198,14 +198,14 @@ public class BaiduPanConfig extends BaseModel implements ComparableRepositoryCon
     }
 
     public boolean isComplete() {
-        return StringUtil.notEmpty(accessToken)
-                && StringUtil.notEmpty(rootPath)
-                && StringUtil.notEmpty(userName)
-                && StringUtil.notEmpty(userAvatarUrl);
+        return StringUtils.isNotBlank(accessToken)
+                && StringUtils.isNotBlank(rootPath)
+                && StringUtils.isNotBlank(userName)
+                && StringUtils.isNotBlank(userAvatarUrl);
     }
 
     public boolean hasAccessToken() {
-        return StringUtil.notEmpty(accessToken);
+        return StringUtils.isNotBlank(accessToken);
     }
 
     public void updateUserInfo() {
@@ -408,7 +408,7 @@ public class BaiduPanConfig extends BaseModel implements ComparableRepositoryCon
     public HashMap<RepositoryPathNode, RepositoryCompareEntry.EntryInfo> collectEntryInfo(
             RepositoryPathNode pathNode, RepositoryCompareResult.CollectListener collectListener) throws Exception {
         HashMap<RepositoryPathNode, RepositoryCompareEntry.EntryInfo> entryInfoMap = new HashMap<>();
-        if (StringUtil.notEmpty(rootPath)) {
+        if (StringUtils.isNotBlank(rootPath)) {
             RepositoryPathNode rootPathNode = new RepositoryPathNode(Paths.get(rootPath));
             for (BaiduPanDirEntry entry : listAll(rootPathNode, false)) {
                 RepositoryPathNode entryRelPathNode = new RepositoryPathNode(
@@ -425,7 +425,7 @@ public class BaiduPanConfig extends BaseModel implements ComparableRepositoryCon
     }
 
     public String getAvatarExternalUrl() {
-        return StringUtil.notEmpty(userAvatarUrl) ? userAvatarUrl : DEFAULT_AVATAR_URL;
+        return StringUtils.isNotBlank(userAvatarUrl) ? userAvatarUrl : DEFAULT_AVATAR_URL;
     }
 
     public String getAccessToken() {

@@ -4,13 +4,13 @@ import com.google.common.base.Preconditions;
 import depot.model.repository.path.RepositoryDirEntry;
 import depot.model.transfer.base.BaseTransferData;
 import depot.util.FileUtil;
-import depot.util.StringUtil;
 import javafx.concurrent.Task;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.tmatesoft.svn.core.SVNDirEntry;
 import org.tmatesoft.svn.core.SVNNodeKind;
 import org.tmatesoft.svn.core.io.SVNRepository;
@@ -62,7 +62,7 @@ public class UploadTransactionData extends BaseTransferData {
                 Preconditions.checkArgument(dir.isDirectory() && dir.canRead(), "不能上传文件夹：" + dir.getCanonicalPath());
 
                 String uploadPath = uploadPathMap.get(dir);
-                Preconditions.checkArgument(StringUtil.notEmpty(uploadPath));
+                Preconditions.checkArgument(StringUtils.isNotBlank(uploadPath));
                 Preconditions.checkArgument(uploadPaths.add(uploadPath), "多个相同的上传路径：" + uploadPath);
 
                 SVNNodeKind kind = repository.checkPath(uploadPath, -1);
@@ -90,7 +90,7 @@ public class UploadTransactionData extends BaseTransferData {
                 Preconditions.checkArgument(file.isFile() && file.canRead(), "不能上传文件：" + file.getCanonicalPath());
 
                 String uploadPath = uploadPathMap.get(file);
-                Preconditions.checkArgument(StringUtil.notEmpty(uploadPath));
+                Preconditions.checkArgument(StringUtils.isNotBlank(uploadPath));
                 Preconditions.checkArgument(uploadPaths.add(uploadPath), "多个相同的上传路径：" + uploadPath);
 
                 SVNDirEntry entry = RepositoryDirEntry.getEntry(repository, uploadPath);
@@ -101,7 +101,7 @@ public class UploadTransactionData extends BaseTransferData {
                         if (file.length() == entry.getSize()) {
                             // 相同大小文件，计算校验和，避免重复上传
                             String entryChecksum = RepositoryDirEntry.getChecksum(repository, uploadPath);
-                            if (StringUtil.notEmpty(entryChecksum)) {
+                            if (StringUtils.isNotBlank(entryChecksum)) {
                                 int itemIdx = fileIdx;
                                 String fileChecksum = FileUtil.getChecksum(file, (pSize, tSize) -> {
                                     if (checksumProgressHandler != null) {

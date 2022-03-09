@@ -6,6 +6,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -139,10 +140,10 @@ public class AlertUtil {
         alert.setContentText(contentText);
         ButtonType yesButton = ButtonType.YES;
         ButtonType noButton = ButtonType.NO;
-        if (StringUtil.notEmpty(yesText)) {
+        if (StringUtils.isNotBlank(yesText)) {
             yesButton = new ButtonType(yesText, ButtonBar.ButtonData.YES);
         }
-        if (StringUtil.notEmpty(noText)) {
+        if (StringUtils.isNotBlank(noText)) {
             noButton = new ButtonType(noText, ButtonBar.ButtonData.NO);
         }
         alert.getButtonTypes().setAll(noButton, yesButton);
