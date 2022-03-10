@@ -15,6 +15,9 @@ import javafx.scene.Scene;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
 import javafx.stage.*;
 import org.tmatesoft.svn.core.internal.io.svn.SVNRepositoryFactoryImpl;
 import org.tmatesoft.svn.core.io.SVNRepository;
@@ -22,6 +25,9 @@ import org.tmatesoft.svn.core.io.SVNRepository;
 import javax.swing.*;
 import java.awt.MenuItem;
 import java.awt.*;
+import java.awt.desktop.AppForegroundEvent;
+import java.awt.desktop.AppForegroundListener;
+import java.awt.desktop.AppReopenedListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
@@ -46,15 +52,39 @@ public class MainApp extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         this.primaryStage = primaryStage;
+
+        Platform.setImplicitExit(false);
+        Desktop desktop = Desktop.getDesktop();
+        desktop.addAppEventListener((AppReopenedListener) e -> {
+            if (!primaryStage.isShowing()) {
+                Platform.runLater(primaryStage::show);
+            }
+        });
+        desktop.addAppEventListener(new AppForegroundListener() {
+            @Override
+            public void appRaisedToForeground(AppForegroundEvent e) {
+                if (!primaryStage.isShowing()) {
+                    Platform.runLater(primaryStage::show);
+                }
+            }
+
+            @Override
+            public void appMovedToBackground(AppForegroundEvent e) {
+            }
+        });
+
         if (System.getProperty("os.name").toLowerCase().contains("win")
                 && !"true".equalsIgnoreCase(System.getenv().get("DEBUG"))) {
             Platform.setImplicitExit(false);
             initSystemTray();
         }
+
         progressStage = new Stage();
         progressStage.setResizable(false);
         progressStage.initModality(Modality.APPLICATION_MODAL);
+
         SVNRepositoryFactoryImpl.setup();
+
         showWelcome();
     }
 
@@ -110,6 +140,8 @@ public class MainApp extends Application {
             stage.setMinWidth(controller.getWidth());
             stage.setMinHeight(controller.getHeight());
             Scene scene = new Scene(parent, controller.getWidth(), controller.getHeight());
+            KeyCombination keyCombination = new KeyCodeCombination(KeyCode.Q, KeyCombination.SHORTCUT_DOWN);
+            scene.getAccelerators().put(keyCombination, this::exit);
             scene.setUserData(controller);
             stage.setScene(scene);
             stage.show();
