@@ -6,7 +6,12 @@ import depot.model.repository.path.RepositoryDirEntry;
 import depot.model.repository.path.RepositoryPathNode;
 import depot.model.repository.sync.RepositoryCompareEntry;
 import depot.model.repository.sync.RepositoryCompareResult;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import netscape.javascript.JSObject;
+import org.apache.commons.lang3.StringUtils;
 import org.tmatesoft.svn.core.SVNNodeKind;
 import org.tmatesoft.svn.core.SVNURL;
 import org.tmatesoft.svn.core.auth.ISVNAuthenticationManager;
@@ -34,16 +39,46 @@ public class RepositoryConfig extends BaseModel implements ComparableRepositoryC
     public static final String AUTH_TYPE_PRIVATE_KEY = "privateKey";
     public static final String DEFAULT_TITLE = "ROOT";
 
+    @Getter
+    @Setter
     private String repositoryUUID;
+
+    @Getter
+    @Setter
     private String protocol;
+
+    @Getter
+    @Setter
     private String host;
+
     private transient String portString;
+
+    @Getter
+    @Setter
     private int port;
+
+    @Getter
+    @Setter
     private String path;
+
+    @Getter
+    @Setter
     private String authType;
+
+    @Getter
+    @Setter
     private String userName;
+
+    @Getter
+    @Setter
     private String password;
+
+    @Getter
+    @Setter
     private String privateKey;
+
+    @Getter
+    @Setter
     private String passphrase;
 
     private transient SVNRepository repository;
@@ -78,24 +113,24 @@ public class RepositoryConfig extends BaseModel implements ComparableRepositoryC
             throw new Exception("不支持的协议类型（" + protocol + "）");
         }
         String defaultHost = !PROTOCOL_FILE.equals(protocol) ? "localhost" : null;
-        host = host == null || host.isEmpty() || PROTOCOL_FILE.equals(protocol) ? defaultHost : host;
+        host = StringUtils.isBlank(host) || PROTOCOL_FILE.equals(protocol) ? defaultHost : host;
         port = -1;
-        if (portString != null && !portString.isEmpty() && !PROTOCOL_FILE.equals(protocol)) {
+        if (StringUtils.isNotBlank(portString) && !PROTOCOL_FILE.equals(protocol)) {
             try {
                 port = Integer.parseInt(portString);
             } catch (Exception e) {
                 throw new Exception("端口（" + portString + "）不合法");
             }
         }
-        path = path == null || path.isEmpty() ? null : path;
+        path = StringUtils.defaultIfBlank(path, null);
         if (!SUPPORTED_AUTH_TYPES.contains(authType)) {
             throw new Exception("不支持的验证方式（" + authType + "）");
         }
-        userName = userName == null || userName.isEmpty() ? null : userName;
-        password = password == null || password.isEmpty() || !AUTH_TYPE_PASSWORD.equals(authType) ? null : password;
+        userName = StringUtils.defaultIfBlank(userName, null);
+        password = StringUtils.isBlank(password) || !AUTH_TYPE_PASSWORD.equals(authType) ? null : password;
         String defaultPrivateKey = AUTH_TYPE_PRIVATE_KEY.equals(authType) ? Paths.get(USER_HOME, ".ssh/id_rsa").toString() : null;
-        privateKey = privateKey == null || privateKey.isEmpty() || !AUTH_TYPE_PRIVATE_KEY.equals(authType) ? defaultPrivateKey : privateKey;
-        passphrase = passphrase == null || passphrase.isEmpty() || !AUTH_TYPE_PRIVATE_KEY.equals(authType) ? null : passphrase;
+        privateKey = StringUtils.isBlank(privateKey) || !AUTH_TYPE_PRIVATE_KEY.equals(authType) ? defaultPrivateKey : privateKey;
+        passphrase = StringUtils.isBlank(passphrase) || !AUTH_TYPE_PRIVATE_KEY.equals(authType) ? null : passphrase;
     }
 
     public static RepositoryConfig newFileRepositoryConfig(String path, String userName, String password) throws Exception {
@@ -162,23 +197,14 @@ public class RepositoryConfig extends BaseModel implements ComparableRepositoryC
         return getSvnUrl().toDecodedString();
     }
 
+    @NoArgsConstructor
+    @AllArgsConstructor
     @XmlRootElement(name = "RepositoryConfigList")
     private static class RepositoryConfigList {
         private static final String XML_PATH = Paths.get(APP_HOME, "RepositoryConfigList.xml").toString();
 
-        private LinkedList<RepositoryConfig> repositoryConfigs;
-
-        public RepositoryConfigList() {
-            repositoryConfigs = new LinkedList<>();
-        }
-
-        public RepositoryConfigList(LinkedList<RepositoryConfig> repositoryConfigs) {
-            this.repositoryConfigs = repositoryConfigs;
-        }
-
-        public LinkedList<RepositoryConfig> getRepositoryConfigs() {
-            return repositoryConfigs;
-        }
+        @Getter
+        private LinkedList<RepositoryConfig> repositoryConfigs = new LinkedList<>();
 
         @XmlElement(name = "RepositoryConfig")
         public void setRepositoryConfigs(LinkedList<RepositoryConfig> repositoryConfigs) {
@@ -295,85 +321,5 @@ public class RepositoryConfig extends BaseModel implements ComparableRepositoryC
                 && Objects.equals(((RepositoryConfig) obj).password, password)
                 && Objects.equals(((RepositoryConfig) obj).privateKey, privateKey)
                 && Objects.equals(((RepositoryConfig) obj).passphrase, passphrase);
-    }
-
-    public String getRepositoryUUID() {
-        return repositoryUUID;
-    }
-
-    public void setRepositoryUUID(String repositoryUUID) {
-        this.repositoryUUID = repositoryUUID;
-    }
-
-    public String getProtocol() {
-        return protocol;
-    }
-
-    public void setProtocol(String protocol) {
-        this.protocol = protocol;
-    }
-
-    public String getHost() {
-        return host;
-    }
-
-    public void setHost(String host) {
-        this.host = host;
-    }
-
-    public int getPort() {
-        return port;
-    }
-
-    public void setPort(int port) {
-        this.port = port;
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
-    }
-
-    public String getAuthType() {
-        return authType;
-    }
-
-    public void setAuthType(String authType) {
-        this.authType = authType;
-    }
-
-    public String getUserName() {
-        return userName;
-    }
-
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getPrivateKey() {
-        return privateKey;
-    }
-
-    public void setPrivateKey(String privateKey) {
-        this.privateKey = privateKey;
-    }
-
-    public String getPassphrase() {
-        return passphrase;
-    }
-
-    public void setPassphrase(String passphrase) {
-        this.passphrase = passphrase;
     }
 }

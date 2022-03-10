@@ -15,6 +15,8 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hc.core5.net.URIBuilder;
 import org.apache.hc.core5.net.URLEncodedUtils;
@@ -72,10 +74,24 @@ public class BaiduPanConfig extends BaseModel implements ComparableRepositoryCon
         }
     }
 
+    @Getter
+    @Setter
     private String accessToken;
+
+    @Getter
+    @Setter
     private Date expireTime;
+
+    @Getter
+    @Setter
     private String rootPath;
+
+    @Getter
+    @Setter
     private String userName;
+
+    @Getter
+    @Setter
     private String userAvatarUrl;
 
     public BaiduPanConfig() {
@@ -426,45 +442,5 @@ public class BaiduPanConfig extends BaseModel implements ComparableRepositoryCon
 
     public String getAvatarExternalUrl() {
         return StringUtils.isNotBlank(userAvatarUrl) ? userAvatarUrl : DEFAULT_AVATAR_URL;
-    }
-
-    public String getAccessToken() {
-        return accessToken;
-    }
-
-    public void setAccessToken(String accessToken) {
-        this.accessToken = accessToken;
-    }
-
-    public Date getExpireTime() {
-        return expireTime;
-    }
-
-    public void setExpireTime(Date expireTime) {
-        this.expireTime = expireTime;
-    }
-
-    public String getRootPath() {
-        return rootPath;
-    }
-
-    public void setRootPath(String rootPath) {
-        this.rootPath = rootPath;
-    }
-
-    public String getUserName() {
-        return userName;
-    }
-
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
-
-    public String getUserAvatarUrl() {
-        return userAvatarUrl;
-    }
-
-    public void setUserAvatarUrl(String userAvatarUrl) {
-        this.userAvatarUrl = userAvatarUrl;
     }
 }
