@@ -31,19 +31,33 @@ import java.awt.desktop.AppReopenedListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Properties;
 
 public class MainApp extends Application {
     public static final String APP_NAME = "Depot";
-    public static final String VERSION = "1.2.1";
+    public static final String VERSION;
     public static URL LOGO_URL = Objects.requireNonNull(MainApp.class.getResource("view/html/img/logo.png"));
 
     private Stage primaryStage;
     private Stage progressStage;
     private ProgressController progressController;
+
+    static {
+        String version = "0.0.0";
+        try {
+            Properties properties = new Properties();
+            properties.load(MainApp.class.getClassLoader().getResourceAsStream("application.properties"));
+            version = properties.getProperty("app.version");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        VERSION = version;
+    }
 
     public static void main(String[] args) {
         launch(args);
