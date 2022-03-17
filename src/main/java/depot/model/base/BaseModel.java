@@ -10,9 +10,9 @@ public abstract class BaseModel {
     protected static final String APP_HOME = Paths.get(USER_HOME, "." + MainApp.APP_NAME.toLowerCase()).toString();
 
     static {
-        File app_home = new File(APP_HOME);
-        if (!app_home.isDirectory()) {
-            app_home.mkdirs();
+        File appHome = new File(APP_HOME);
+        if (!appHome.isDirectory()) {
+            appHome.mkdirs();
         }
     }
 }

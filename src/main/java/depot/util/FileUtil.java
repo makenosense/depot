@@ -11,6 +11,8 @@ import org.tmatesoft.svn.core.internal.wc.SVNFileUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.InputStream;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -29,16 +31,13 @@ public class FileUtil {
             .build(new CacheLoader<>() {
                 @Override
                 public Set<String> load(String s) {
-                    File ignoreFile = new File(Objects.requireNonNull(MainApp.class.getResource(s)).getFile());
-                    if (ignoreFile.isFile()) {
-                        try (FileInputStream fileInputStream = new FileInputStream(ignoreFile)) {
-                            return Arrays.stream(new String(fileInputStream.readAllBytes(), StandardCharsets.UTF_8)
-                                            .split("\\r?\\n"))
-                                    .map(StringUtils::trim)
-                                    .filter(StringUtils::isNotBlank)
-                                    .collect(Collectors.toSet());
-                        } catch (Exception ignored) {
-                        }
+                    try (InputStream inputStream = new URL(Objects.requireNonNull(MainApp.class.getResource(s)).toExternalForm()).openStream()) {
+                        return Arrays.stream(new String(inputStream.readAllBytes(), StandardCharsets.UTF_8)
+                                        .split("\\r?\\n"))
+                                .map(StringUtils::trim)
+                                .filter(StringUtils::isNotBlank)
+                                .collect(Collectors.toSet());
+                    } catch (Exception ignored) {
                     }
                     return Sets.newHashSet();
                 }

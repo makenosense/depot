@@ -1,5 +1,8 @@
 package depot.model.base;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -7,6 +10,8 @@ import java.io.File;
 import java.nio.file.Paths;
 import java.util.logging.Logger;
 
+@Getter
+@Setter
 @XmlRootElement(name = "AppSettings")
 public class AppSettings extends BaseModel {
     private static final String XML_PATH = Paths.get(APP_HOME, "AppSettings.xml").toString();
@@ -37,13 +42,5 @@ public class AppSettings extends BaseModel {
                 .createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
         marshaller.marshal(this, new File(XML_PATH));
-    }
-
-    public File getDownloadParent() {
-        return downloadParent;
-    }
-
-    public void setDownloadParent(File downloadParent) {
-        this.downloadParent = downloadParent;
     }
 }
